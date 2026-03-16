@@ -1,0 +1,125 @@
+# GMDF Documentation Builder
+
+A browser-based visual editor for creating `documentation.json` files for the [Generic Mod Documentation Framework](https://github.com/vapor64/GMDF) Stardew Valley mod.
+
+**[Open the Builder](https://vapor-64.github.io/GMDFBuilder/)**
+
+---
+
+## What It Does
+
+The builder lets mod authors compose their `documentation.json` visually without writing JSON by hand. You build pages, drag and drop content entries into place, upload images to preview them, load your i18n files to test translations, then download the finished file directly from the browser.
+
+Everything runs client-side — no files are uploaded anywhere.
+
+---
+
+## Interface Overview
+
+The toolbar at the top provides four views:
+
+| View | Purpose |
+|---|---|
+| **Editor** | Build pages and entries visually |
+| **Preview** | See a faithful rendering of how the documentation will look in-game |
+| **JSON** | View, copy, or download the generated `documentation.json` |
+| **Validate** | Check for errors and warnings before exporting |
+
+Two utility buttons also sit in the toolbar — **Sample** loads a pre-built example document covering all entry types, and **Import** lets you paste or load an existing `documentation.json` to continue editing it.
+
+---
+
+## Editor
+
+### Pages
+
+Documentation is organized into pages that appear as tabs in the in-game viewer. Use the page tab bar at the top of the canvas to add, rename, reorder, or remove pages. Each page has a name (shown as the tab label in-game) and an optional header image displayed above the entries.
+
+### Entry Palette
+
+The left panel lists all available entry types. You can add an entry by clicking it in the palette (it is appended to the bottom of the current page) or by dragging it onto the canvas and dropping it at any position.
+
+### Entry Cards
+
+Each entry on the canvas is an editable card. Cards can be collapsed to save space. Controls on each card let you move it up or down, duplicate it, or delete it. Changes to text fields are saved silently as you type — no submit button needed.
+
+### Row Layout
+
+The `Row (2 columns)` entry type creates a two-column horizontal layout. Each column is an independent mini-canvas that accepts its own entries (every type except another row). The split between columns is adjustable via the left fraction slider.
+
+---
+
+## Entry Types
+
+| Entry | Description |
+|---|---|
+| **Section Title** | Bold heading with configurable font size and alignment |
+| **Paragraph** | Body text; supports `\n` for manual line breaks |
+| **Caption** | Small muted text, centered by default |
+| **Image** | Static image from your mod's assets, with scale and alignment controls. Supports an optional bullet-point sidebar for labelling items in the image |
+| **Animated GIF** | Sprite sheet animation; configure frame count, frame duration, sheet columns/rows, scale, and alignment |
+| **Bullet List** | Unordered list with per-item text fields |
+| **Numbered List** | Ordered list with per-item text fields |
+| **Key → Value** | Two-column config reference row |
+| **Divider** | Horizontal rule; styles: `single`, `double`, `dotted`, `iconCentered` |
+| **Spacer** | Blank vertical gap with configurable height |
+| **Spoiler** | Collapsible block with a label and body text |
+| **Row (2 columns)** | Side-by-side layout container |
+
+---
+
+## Image Preview
+
+Click **Images** in the toolbar to upload image files from your mod's assets folder. Supported formats are PNG, JPG, GIF, WebP, BMP, and SVG.
+
+Uploaded images are matched to entries by filename only — the path prefix you write in the texture field (e.g. `assets/banner.png`) is stripped and only `banner.png` is used for lookup. This means you do not need to mirror your mod's exact folder structure in the builder.
+
+Images are stored as in-memory blob URLs and are never uploaded to any server. They are lost on page refresh, so re-upload them each session if you need the preview.
+
+---
+
+## i18n Preview
+
+Click **i18n** in the toolbar to upload your mod's translation files. The builder accepts standard SMAPI i18n format — flat JSON files where keys map to translated strings (e.g. `default.json`, `fr.json`).
+
+Once loaded, a language selector appears. The Preview view resolves all `{{i18n:key}}` tokens against the selected language file so you can verify translations without leaving the builder.
+
+In any text field, a **globe button** appears when i18n files are loaded. Clicking it opens a dropdown of all available keys so you can insert `{{i18n:key}}` tokens without typing them manually.
+
+---
+
+## Sprite Picker
+
+The builder ships with the full set of Stardew Valley item sprites pre-embedded. In any text field that supports inline content (paragraph text, list items, key/value fields, spoiler body), a **sprite button** (▣) opens a sprite picker panel:
+
+- Browse sprites by category using the tab bar at the top of the panel
+- Filter by name using the search box
+- Click any sprite to insert a `[(QUAL)ID]` token at the cursor position
+
+You can also trigger autocomplete inline by typing `[(` in any supported field. A suggestion popup appears and filters as you continue typing the qualifier and ID. Navigate with arrow keys, confirm with Enter, dismiss with Escape.
+
+---
+
+## Auto-Save
+
+The builder automatically saves your work to `localStorage` after every change. The save indicator in the toolbar shows whether data is persisted. Your document is restored the next time you open the builder in the same browser.
+
+A **Reset** button appears in the toolbar when saved data exists. Clicking it clears the saved document and returns the editor to a blank state.
+
+Auto-save persists the mod name, all pages and entries, the active page index, and the active i18n key. Transient state such as drag position is not saved.
+
+---
+
+## Export
+
+Switch to the **JSON** view to see the generated `documentation.json`. From there you can copy it to the clipboard or click **Download** to save it as `documentation.json` directly.
+
+The serializer omits fields that match their default values to keep the output clean. For example, `align: "left"` is never written (left is the default), and `scale: 2` is omitted from image entries since that is the default scale.
+
+---
+
+## Validation
+
+The **Validate** view runs a set of checks over the current document and reports errors and warnings. Errors indicate problems that will prevent GMDF from displaying an entry correctly (e.g. an image entry with no texture path). Warnings flag things that are likely unintentional but not fatal (e.g. an empty list item).
+
+Fix all errors before exporting for use in-game.
