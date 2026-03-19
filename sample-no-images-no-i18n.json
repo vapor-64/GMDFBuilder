@@ -1,0 +1,85 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vapor64/GMDF/master/documentation.schema.json",
+  "format": 1,
+  "modName": "Sample Documentation",
+  "pages": [
+    {
+      "name": "Overview",
+      "entries": [
+        {
+          "type": "divider",
+          "style": "iconCentered"
+        },
+        {
+          "type": "sectionTitle",
+          "text": "Overview"
+        },
+        {
+          "type": "paragraph",
+          "text": "Lorem ipsum dolor [276] sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco [(BC)64] laboris nisi ut aliquip ex ea commodo consequat."
+        },
+        {
+          "type": "list",
+          "items": [
+            "Lorem ipsum dolor sit amet",
+            "consectetur adipiscing elit",
+            "sed do eiusmod tempor incididunt"
+          ]
+        },
+        {
+          "type": "divider",
+          "style": "dotted"
+        },
+        {
+          "type": "sectionTitle",
+          "text": "Details"
+        },
+        {
+          "type": "orderedList",
+          "items": [
+            "Lorem ipsum dolor sit amet consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua",
+            "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat",
+            "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur [(O)215]"
+          ]
+        },
+        {
+          "type": "divider"
+        },
+        {
+          "type": "row",
+          "left": [
+            {
+              "type": "spoiler",
+              "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."
+            }
+          ],
+          "right": [
+            {
+              "type": "keyValue",
+              "key": "Lorem",
+              "value": "ipsum dolor"
+            },
+            {
+              "type": "keyValue",
+              "key": "[(BC)7]",
+              "value": "[(O)2]"
+            },
+            {
+              "type": "keyValue",
+              "key": "Sit amet",
+              "value": "consectetur"
+            }
+          ]
+        },
+        {
+          "type": "divider",
+          "style": "double"
+        },
+        {
+          "type": "caption",
+          "text": "This sample uses no images and no i18n keys — all text is plain strings."
+        }
+      ]
+    }
+  ]
+}

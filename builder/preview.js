@@ -266,8 +266,8 @@ function renderPreviewEntry(entry) {
       });
 
       const arrow  = h("span", { style: { color: "#fff", fontSize: "12px", flexShrink: "0" } }, "►");
-      const lbl    = h("span", { style: { color: "#fff", fontFamily: "'SVThin',sans-serif", fontSize: "14px" } },
-        entry.label || "(no label)");
+      const lbl    = h("span", { style: { color: "#fff", fontFamily: "'SVThin',sans-serif", fontSize: "14px" } });
+      lbl.appendChild(renderInlineContent(resolveI18n(entry.label) || "(no label)", 14));
       headerBar.appendChild(arrow);
       headerBar.appendChild(lbl);
 
@@ -283,7 +283,8 @@ function renderPreviewEntry(entry) {
           whiteSpace: "pre-wrap",
           wordBreak: "break-word",
         }
-      }, entry.text || "(no content)");
+      });
+      contentEl.appendChild(renderInlineContent(resolveI18n(entry.text) || "(no content)", 14));
 
       headerBar.addEventListener("click", () => {
         revealed = !revealed;

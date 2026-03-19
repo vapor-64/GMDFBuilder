@@ -186,12 +186,60 @@
   
   ha.appendChild(h("div", { className: "header-divider" }));
 
-  ha.appendChild(h("button", {
-    className: "tab-btn",
-    style:     { background: "rgba(255,255,255,0.07)", borderColor: "rgba(255,255,255,0.12)" },
-    title:     "Load a sample document to explore all entry types",
-    onClick:   () => loadSampleDocumentation()
-  }, "Sample"));
+  // Sample button with variant dropdown
+  const activeVariantKey   = state.sampleVariantKey || "no-images-no-i18n";
+  const activeVariantLabel = SAMPLE_VARIANTS[activeVariantKey]?.label ?? "Sample";
+  const sampleGroup = h("div", { className: "header-tool-group sample-picker-group" });
+  const sampleLoadBtn = h("button", {
+    className: "header-tool-btn",
+    style:     { fontWeight: "700" },
+    title:     `Load sample: ${activeVariantLabel}`,
+    onClick:   () => loadSampleVariant(activeVariantKey)
+  }, "Sample");
+  const sampleChevronBtn = h("button", {
+    className: "header-tool-btn sample-chevron-btn",
+    title:     `Current: ${activeVariantLabel} — click to change`,
+    onClick:   evt => {
+      evt.stopPropagation();
+      const existing = sampleGroup.querySelector(".sample-picker-dropdown");
+      if (existing) { existing.remove(); return; }
+
+      const dropdown = h("div", { className: "sample-picker-dropdown" });
+
+      // Header label
+      dropdown.appendChild(h("div", { className: "sample-picker-header" }, "Load sample as…"));
+
+      Object.entries(SAMPLE_VARIANTS).forEach(([key, variant]) => {
+        const isActive = activeVariantKey === key;
+        const item = h("div", {
+          className: "sample-picker-item" + (isActive ? " active" : ""),
+          title:     variant.label,
+          onClick:   () => {
+            state.sampleVariantKey = key;
+            dropdown.remove();
+            // Re-render so the chevron title updates
+            render();
+          }
+        }, variant.label);
+        dropdown.appendChild(item);
+      });
+
+      setTimeout(() => {
+        function closer(e) {
+          if (!sampleGroup.contains(e.target)) {
+            dropdown.remove();
+            document.removeEventListener("mousedown", closer);
+          }
+        }
+        document.addEventListener("mousedown", closer);
+      }, 0);
+
+      sampleGroup.appendChild(dropdown);
+    }
+  }, "▾");
+  sampleGroup.appendChild(sampleLoadBtn);
+  sampleGroup.appendChild(sampleChevronBtn);
+  ha.appendChild(sampleGroup);
   ha.appendChild(h("button", {
     className: "tab-btn",
     style:     { background: "rgba(255,255,255,0.07)", borderColor: "rgba(255,255,255,0.12)" },

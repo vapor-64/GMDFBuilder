@@ -1,0 +1,20 @@
+{
+  "modName":          "Documentación de Ejemplo",
+  "page.overview":    "Resumen",
+  "section.overview": "Resumen",
+  "overview.intro":   "Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Quisque fringilla turpis vel ligula tincidunt, at facilisis libero fermentum.",
+  "list.item1":       "Vestibulum ante ipsum primis",
+  "list.item2":       "Pellentesque habitant morbi tristique",
+  "list.item3":       "Quisque fringilla turpis vel ligula",
+  "section.details":  "Detalles",
+  "details.step1":    "Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas",
+  "details.step2":    "Quisque fringilla turpis vel ligula tincidunt, at facilisis libero fermentum; Cras dignissim sapien nec orci cursus, at suscipit metus ultricies",
+  "details.step3":    "Aliquam erat volutpat, sed condimentum nulla efficitur; Fusce euismod sapien non augue convallis, vel dictum metus pretium [(O)215]",
+  "spoiler.label":    "Leer más…",
+  "spoiler.text":     "Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Quisque fringilla turpis vel ligula tincidunt, at facilisis libero fermentum. Cras dignissim sapien nec orci cursus, at suscipit metus ultricies.",
+  "kv.key1":          "Vestibulum",
+  "kv.val1":          "ante ipsum",
+  "kv.key2":          "Pellentesque",
+  "kv.val2":          "habitant morbi",
+  "caption.footer":   "Este ejemplo utiliza claves de i18n — cambia el idioma con el selector 🌐 i18n en la cabecera."
+}

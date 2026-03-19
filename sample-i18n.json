@@ -1,0 +1,77 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vapor64/GMDF/master/documentation.schema.json",
+  "format": 1,
+  "modName": "{{i18n:modName}}",
+  "pages": [
+    {
+      "name": "{{i18n:page.overview}}",
+      "entries": [
+        {
+          "type": "divider",
+          "style": "iconCentered"
+        },
+        {
+          "type": "sectionTitle",
+          "text": "{{i18n:section.overview}}"
+        },
+        {
+          "type": "paragraph",
+          "text": "{{i18n:overview.intro}}"
+        },
+        {
+          "type": "list",
+          "items": [
+            "{{i18n:list.item1}}",
+            "{{i18n:list.item2}}",
+            "{{i18n:list.item3}}"
+          ]
+        },
+        {
+          "type": "divider",
+          "style": "dotted"
+        },
+        {
+          "type": "sectionTitle",
+          "text": "{{i18n:section.details}}"
+        },
+        {
+          "type": "orderedList",
+          "items": [
+            "{{i18n:details.step1}}",
+            "{{i18n:details.step2}}",
+            "{{i18n:details.step3}}"
+          ]
+        },
+        {
+          "type": "divider"
+        },
+        {
+          "type": "row",
+          "left": [
+            {
+              "type": "spoiler",
+              "label": "{{i18n:spoiler.label}}",
+              "text": "{{i18n:spoiler.text}}"
+            }
+          ],
+          "right": [
+            {
+              "type": "keyValue",
+              "key": "{{i18n:kv.key1}}",
+              "value": "{{i18n:kv.val1}}"
+            },
+            {
+              "type": "keyValue",
+              "key": "{{i18n:kv.key2}}",
+              "value": "{{i18n:kv.val2}}"
+            }
+          ]
+        },
+        {
+          "type": "caption",
+          "text": "{{i18n:caption.footer}}"
+        }
+      ]
+    }
+  ]
+}

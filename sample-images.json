@@ -1,0 +1,101 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vapor64/GMDF/master/documentation.schema.json",
+  "format": 1,
+  "modName": "Sample Documentation",
+  "pages": [
+    {
+      "name": "Overview",
+      "headerImage": {
+        "texture": "assets/header.png"
+      },
+      "entries": [
+        {
+          "type": "divider",
+          "style": "iconCentered"
+        },
+        {
+          "type": "row",
+          "left": [
+            {
+              "type": "sectionTitle",
+              "text": "Overview"
+            },
+            {
+              "type": "paragraph",
+              "text": "Lorem ipsum dolor [276] sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco [(BC)64] laboris nisi ut aliquip ex ea commodo consequat."
+            },
+            {
+              "type": "list",
+              "items": [
+                "Lorem ipsum dolor sit amet",
+                "consectetur adipiscing elit"
+              ]
+            }
+          ],
+          "right": [
+            {
+              "type": "gif",
+              "align": "right",
+              "texture": "assets/pennygif.png",
+              "scale": 0.6,
+              "frameCount": 31,
+              "frameDuration": 0.02,
+              "columns": 6,
+              "rows": 6
+            }
+          ],
+          "leftFraction": 0.7
+        },
+        {
+          "type": "divider",
+          "style": "dotted"
+        },
+        {
+          "type": "row",
+          "left": [
+            {
+              "type": "image",
+              "texture": "assets/sample.png",
+              "scale": 0.3
+            }
+          ],
+          "right": [
+            {
+              "type": "orderedList",
+              "items": [
+                "Lorem ipsum dolor sit amet consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua",
+                "Lorem ipsum dolor sit amet consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua",
+                "labore et dolore magna aliqua [(O)215] Lorem ipsum dolor sit amet consectetur adipiscing elit"
+              ]
+            }
+          ],
+          "leftFraction": 0.25
+        },
+        {
+          "type": "divider"
+        },
+        {
+          "type": "row",
+          "left": [
+            {
+              "type": "spoiler",
+              "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+            }
+          ],
+          "right": [
+            {
+              "type": "keyValue",
+              "key": "Lorem",
+              "value": "ipsum"
+            },
+            {
+              "type": "keyValue",
+              "key": "[(BC)7]",
+              "value": "[(O)2]"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,111 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vapor64/GMDF/master/documentation.schema.json",
+  "format": 1,
+  "modName": "{{i18n:modName}}",
+  "pages": [
+    {
+      "name": "{{i18n:page.overview}}",
+      "headerImage": {
+        "texture": "assets/header.png"
+      },
+      "entries": [
+        {
+          "type": "divider",
+          "style": "iconCentered"
+        },
+        {
+          "type": "row",
+          "left": [
+            {
+              "type": "sectionTitle",
+              "text": "{{i18n:section.overview}}"
+            },
+            {
+              "type": "paragraph",
+              "text": "{{i18n:overview.intro}}"
+            },
+            {
+              "type": "list",
+              "items": [
+                "{{i18n:list.item1}}",
+                "{{i18n:list.item2}}",
+                "{{i18n:list.item3}}"
+              ]
+            }
+          ],
+          "right": [
+            {
+              "type": "gif",
+              "align": "right",
+              "texture": "assets/pennygif.png",
+              "scale": 0.6,
+              "frameCount": 31,
+              "frameDuration": 0.02,
+              "columns": 6,
+              "rows": 6
+            }
+          ],
+          "leftFraction": 0.7
+        },
+        {
+          "type": "divider",
+          "style": "dotted"
+        },
+        {
+          "type": "row",
+          "left": [
+            {
+              "type": "image",
+              "texture": "assets/sample.png",
+              "scale": 0.3
+            }
+          ],
+          "right": [
+            {
+              "type": "sectionTitle",
+              "text": "{{i18n:section.details}}"
+            },
+            {
+              "type": "orderedList",
+              "items": [
+                "{{i18n:details.step1}}",
+                "{{i18n:details.step2}}",
+                "{{i18n:details.step3}}"
+              ]
+            }
+          ],
+          "leftFraction": 0.25
+        },
+        {
+          "type": "divider"
+        },
+        {
+          "type": "row",
+          "left": [
+            {
+              "type": "spoiler",
+              "label": "{{i18n:spoiler.label}}",
+              "text": "{{i18n:spoiler.text}}"
+            }
+          ],
+          "right": [
+            {
+              "type": "keyValue",
+              "key": "{{i18n:kv.key1}}",
+              "value": "{{i18n:kv.val1}}"
+            },
+            {
+              "type": "keyValue",
+              "key": "{{i18n:kv.key2}}",
+              "value": "{{i18n:kv.val2}}"
+            }
+          ]
+        },
+        {
+          "type": "caption",
+          "text": "{{i18n:caption.footer}}"
+        }
+      ]
+    }
+  ]
+}

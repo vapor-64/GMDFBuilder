@@ -46,20 +46,22 @@ let state = _persisted
       activePageIdx: _persisted.activePageIdx ?? 0,
       activeI18nKey: _persisted.activeI18nKey ?? null,
       
-      view:          "editor",
-      dragType:      null,
-      dragOverIdx:   null,
-      copyLabel:     "Copy JSON",
+      view:              "editor",
+      dragType:          null,
+      dragOverIdx:       null,
+      copyLabel:         "Copy JSON",
+      sampleVariantKey:  "no-images-no-i18n",
     }
   : {
-      modName:       "",
-      pages:         [{ _id: uid(), name: "Overview", headerImage: "", entries: [] }],
-      activePageIdx: 0,
-      view:          "editor",
-      dragType:      null,
-      dragOverIdx:   null,
-      copyLabel:     "Copy JSON",
-      activeI18nKey: null,
+      modName:           "",
+      pages:             [{ _id: uid(), name: "Overview", headerImage: "", entries: [] }],
+      activePageIdx:     0,
+      view:              "editor",
+      dragType:          null,
+      dragOverIdx:       null,
+      copyLabel:         "Copy JSON",
+      activeI18nKey:     null,
+      sampleVariantKey:  "no-images-no-i18n",
     };
 
 function pg() {
@@ -99,10 +101,15 @@ const assetStore = new Map();
 
 function resolveAsset(path) {
   if (!path || !path.trim()) return null;
-  
-  const fname = path.replace(/\\/g, "/").trim().split("/").pop();
-  const entry = assetStore.get(fname);
-  return entry ? entry.blobUrl : null;
+  // Normalise to forward slashes and strip leading ./
+  const normalised = path.replace(/\\/g, "/").trim().replace(/^\.\//,  "");
+  // Try exact key first (e.g. "assets/header.png")
+  const exact = assetStore.get(normalised);
+  if (exact) return exact.blobUrl;
+  // Fallback: bare filename, for backwards-compat with old saves
+  const bare = normalised.split("/").pop();
+  const fallback = assetStore.get(bare);
+  return fallback ? fallback.blobUrl : null;
 }
 
 const IMAGE_EXTS = /\.(png|jpe?g|gif|webp|bmp|svg)$/i;
@@ -110,9 +117,10 @@ const IMAGE_EXTS = /\.(png|jpe?g|gif|webp|bmp|svg)$/i;
 function addAssetsFromInput(files) {
   for (const file of files) {
     if (!IMAGE_EXTS.test(file.name)) continue;
-    const existing = assetStore.get(file.name);
+    const key = "assets/" + file.name;
+    const existing = assetStore.get(key);
     if (existing) URL.revokeObjectURL(existing.blobUrl);
-    assetStore.set(file.name, { blobUrl: URL.createObjectURL(file), originalName: file.name });
+    assetStore.set(key, { blobUrl: URL.createObjectURL(file), originalName: file.name });
   }
   render();
 }
