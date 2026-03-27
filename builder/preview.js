@@ -265,10 +265,8 @@ function renderPreviewEntry(entry) {
         }
       });
 
-      const arrow  = h("span", { style: { color: "#fff", fontSize: "12px", flexShrink: "0" } }, "►");
-      const lbl    = h("span", { style: { color: "#fff", fontFamily: "'SVThin',sans-serif", fontSize: "14px" } });
+      const lbl = h("span", { style: { color: "#fff", fontFamily: "'SVThin',sans-serif", fontSize: "14px" } });
       lbl.appendChild(renderInlineContent(resolveI18n(entry.label) || "(no label)", 14));
-      headerBar.appendChild(arrow);
       headerBar.appendChild(lbl);
 
       const contentEl = h("div", {
@@ -288,7 +286,6 @@ function renderPreviewEntry(entry) {
 
       headerBar.addEventListener("click", () => {
         revealed = !revealed;
-        arrow.textContent      = revealed ? "▼" : "►";
         contentEl.style.display = revealed ? "block" : "none";
       });
 
