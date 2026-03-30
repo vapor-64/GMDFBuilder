@@ -95,6 +95,15 @@
               "value": "[(O)2]"
             }
           ]
+        },
+        {
+          "type": "divider",
+          "style": "dotted"
+        },
+        {
+          "type": "link",
+          "text": "Visit the Nexus Mods page",
+          "url": "https://www.nexusmods.com/stardewvalley"
         }
       ]
     }

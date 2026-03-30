@@ -79,6 +79,15 @@
         {
           "type": "caption",
           "text": "This sample uses no images and no i18n keys — all text is plain strings."
+        },
+        {
+          "type": "divider",
+          "style": "dotted"
+        },
+        {
+          "type": "link",
+          "text": "Visit the Nexus Mods page",
+          "url": "https://www.nexusmods.com/stardewvalley"
         }
       ]
     }

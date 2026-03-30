@@ -70,6 +70,15 @@
         {
           "type": "caption",
           "text": "{{i18n:caption.footer}}"
+        },
+        {
+          "type": "divider",
+          "style": "dotted"
+        },
+        {
+          "type": "link",
+          "text": "{{i18n:link.nexus}}",
+          "url": "https://www.nexusmods.com/stardewvalley"
         }
       ]
     }

@@ -320,6 +320,49 @@ function renderEntryCard(entry, idx, total, callbacks) {
   }
 
   
+  if (meta?.hasLink) {
+    // Label field (maps to "text" in JSON — the C# loader reads data.Text as the link label)
+    const lf = h("div", { className: "field" });
+    lf.appendChild(h("label", { className: "field-label" }, "Label"));
+    const li = h("input", { className: "input", placeholder: "Visit Nexus Mods" });
+    li.value = entry.text || "";
+    li.addEventListener("input", e => silentUpd("text", e.target.value));
+    lf.appendChild(renderI18nPicker(li));
+    body.appendChild(lf);
+
+    // URL field
+    const uf = h("div", { className: "field" });
+    uf.appendChild(h("label", { className: "field-label" }, "URL"));
+    const urlRow = h("div", { style: { display: "flex", gap: "6px", alignItems: "center" } });
+    const ui = h("input", { className: "input", placeholder: "https://" });
+    ui.value = entry.url || "";
+    ui.addEventListener("input", e => silentUpd("url", e.target.value));
+    urlRow.appendChild(ui);
+
+    // Safety badge — mirrors the https/http whitelist in LinkEntry.IsUrlSafe()
+    const badge = h("span", {
+      style: { fontFamily: "var(--font-mono)", fontSize: "10px", whiteSpace: "nowrap",
+               padding: "2px 6px", borderRadius: "3px", flexShrink: "0" }
+    });
+    function updateBadge(url) {
+      const safe = /^https?:\/\//i.test(url);
+      badge.textContent  = safe ? "✓ safe" : "✗ unsafe";
+      badge.style.background = safe ? "rgba(60,120,60,0.18)" : "rgba(180,60,60,0.18)";
+      badge.style.color      = safe ? "#3a8a3a" : "#c03030";
+    }
+    updateBadge(entry.url || "");
+    ui.addEventListener("input", e => updateBadge(e.target.value));
+    urlRow.appendChild(badge);
+    uf.appendChild(urlRow);
+
+    const urlHint = h("div", {
+      style: { fontSize: "10px", color: "var(--text-dim)", fontFamily: "var(--font-mono)",
+               marginTop: "3px", lineHeight: "1.4" }
+    }, "Only https:// and http:// URLs will open in-game. Other schemes are blocked by GMDF.");
+    uf.appendChild(urlHint);
+    body.appendChild(uf);
+  }
+
   if (entry.type === "row") {
     
     const fracRow = h("div", { className: "field-row", style: { marginBottom: "8px", alignItems: "center", gap: "8px" } });

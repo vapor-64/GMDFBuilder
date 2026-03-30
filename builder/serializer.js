@@ -26,6 +26,7 @@
     if (e.columns && e.columns > 0) r.columns = e.columns;
     if (e.rows && e.rows > 1)       r.rows    = e.rows;
   }
+  if (e.type === "link" && e.url !== undefined) r.url = e.url;
   return r;
 }
 
@@ -77,6 +78,12 @@ function validate() {
       if (e.type === "keyValue") {
         if (!e.key?.trim())   iss.push({ level: "error", msg: `${loc}: Key is empty.` });
         if (!e.value?.trim()) iss.push({ level: "warn",  msg: `${loc}: Value is empty.` });
+      }
+      if (e.type === "link") {
+        if (!e.text?.trim()) iss.push({ level: "error", msg: `${loc}: Label is empty.` });
+        if (!e.url?.trim())  iss.push({ level: "error", msg: `${loc}: URL is empty.` });
+        else if (!/^https?:\/\//i.test(e.url))
+          iss.push({ level: "warn", msg: `${loc}: URL scheme is not https:// or http:// — link will be blocked in-game.` });
       }
     });
   });

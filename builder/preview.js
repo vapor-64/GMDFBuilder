@@ -294,6 +294,40 @@ function renderPreviewEntry(entry) {
       return wrap;
     }
 
+    case "link": {
+      const label   = resolveI18n(entry.text) || "(no label)";
+      const url     = entry.url  || "";
+      const align   = entry.align || "left";
+      const isSafe  = /^https?:\/\//i.test(url);
+      const wrap    = h("div", { style: { marginBottom: "4px", textAlign: align } });
+      const a       = h("a", {
+        style: {
+          fontFamily:     "'SVThin', sans-serif",
+          fontSize:       "14px",
+          color:          isSafe ? "#3250c8" : "#888",
+          textDecoration: "underline",
+          cursor:         isSafe ? "pointer" : "default",
+          opacity:        isSafe ? "1" : "0.5",
+        }
+      }, label);
+      if (isSafe) {
+        a.href   = url;
+        a.target = "_blank";
+        a.rel    = "noopener noreferrer";
+      }
+      if (!isSafe && url) {
+        a.title = `Blocked in-game: scheme is not https:// or http://`;
+      }
+      wrap.appendChild(a);
+      if (!isSafe && url) {
+        const warn = h("span", {
+          style: { fontSize: "10px", color: "#c03030", fontFamily: "var(--font-mono)", marginLeft: "6px" }
+        }, "⚠ unsafe scheme — blocked in-game");
+        wrap.appendChild(warn);
+      }
+      return wrap;
+    }
+
     case "divider":
       return renderDivider(entry.style || "single");
 

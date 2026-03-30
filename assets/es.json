@@ -16,5 +16,6 @@
   "kv.val1":          "ante ipsum",
   "kv.key2":          "Pellentesque",
   "kv.val2":          "habitant morbi",
-  "caption.footer":   "Este ejemplo utiliza claves de i18n — cambia el idioma con el selector 🌐 i18n en la cabecera."
+  "caption.footer":   "Este ejemplo utiliza claves de i18n — cambia el idioma con el selector 🌐 i18n en la cabecera.",
+  "link.nexus":        "Visita la página de Nexus Mods"
 }
