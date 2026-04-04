@@ -1,6 +1,7 @@
 ﻿function serializeEntry(e) {
   const r = { type: e.type };
   if (e.text  !== undefined) r.text  = e.text;
+  if (e.label !== undefined) r.label = e.label;
   
   if (e.align && !(e.type === "caption" && e.align === "center") && e.align !== "left") r.align = e.align;
   

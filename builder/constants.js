@@ -39,7 +39,7 @@ function defaultEntry(type) {
   if (m?.hasAlign)   b.align = type === "caption" ? "center" : "left";
   if (m?.hasImage)   { b.texture = ""; b.scale = 2; b.items = []; }
   if (m?.hasList)    b.items = [""];
-  if (m?.hasSpoiler) { b.label = ""; b.text = ""; }
+  if (m?.hasSpoiler) { b.label = "Spoiler"; b.text = ""; }
   if (type === "keyValue") { b.key = ""; b.value = ""; }
   if (type === "divider")  b.style  = "single";
   if (type === "spacer")   b.height = 16;

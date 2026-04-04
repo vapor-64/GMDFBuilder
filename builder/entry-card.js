@@ -242,7 +242,7 @@ function renderEntryCard(entry, idx, total, callbacks) {
     
     const lf = h("div", { className: "field" });
     lf.appendChild(h("label", { className: "field-label" }, "Label (header bar text)"));
-    const li = h("input", { className: "input", placeholder: "Spoiler: Click to reveal" });
+    const li = h("input", { className: "input", placeholder: "Spoiler" });
     li.value = entry.label || "";
     li.addEventListener("input", e => silentUpd("label", e.target.value));
     lf.appendChild(renderI18nPicker(li));
