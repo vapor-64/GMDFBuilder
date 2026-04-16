@@ -104,6 +104,183 @@
           "type": "link",
           "text": "Visit the Nexus Mods page",
           "url": "https://www.nexusmods.com/stardewvalley"
+        },
+        {
+          "type": "divider",
+          "style": "double"
+        },
+        {
+          "type": "sectionTitle",
+          "text": "Indent Block Tests"
+        },
+        {
+          "type": "paragraph",
+          "text": "A basic indent block (32px) containing a paragraph and a list."
+        },
+        {
+          "type": "indentBlock",
+          "entries": [
+            {
+              "type": "paragraph",
+              "text": "Level 1 \u2014 this paragraph is indented 32px. It wraps normally within the reduced width."
+            },
+            {
+              "type": "list",
+              "items": [
+                "Indented bullet one",
+                "Indented bullet two"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "spacer",
+          "height": 8
+        },
+        {
+          "type": "paragraph",
+          "text": "Two levels of nesting \u2014 each indentBlock adds 32px on top of the previous."
+        },
+        {
+          "type": "indentBlock",
+          "indent": 32,
+          "entries": [
+            {
+              "type": "paragraph",
+              "text": "Level 1 \u2014 outer indent block."
+            },
+            {
+              "type": "indentBlock",
+              "indent": 32,
+              "entries": [
+                {
+                  "type": "paragraph",
+                  "text": "Level 2 \u2014 nested 64px from the left edge."
+                },
+                {
+                  "type": "list",
+                  "items": [
+                    "Nested bullet one",
+                    "Nested bullet two"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "spacer",
+          "height": 8
+        },
+        {
+          "type": "paragraph",
+          "text": "Three levels of nesting with mixed entry types at each depth."
+        },
+        {
+          "type": "indentBlock",
+          "indent": 32,
+          "entries": [
+            {
+              "type": "sectionTitle",
+              "text": "Level 1"
+            },
+            {
+              "type": "keyValue",
+              "key": "Category",
+              "value": "Weapon"
+            },
+            {
+              "type": "indentBlock",
+              "indent": 32,
+              "entries": [
+                {
+                  "type": "sectionTitle",
+                  "text": "Level 2"
+                },
+                {
+                  "type": "keyValue",
+                  "key": "Damage",
+                  "value": "25"
+                },
+                {
+                  "type": "keyValue",
+                  "key": "Speed",
+                  "value": "1.4\u00d7"
+                },
+                {
+                  "type": "indentBlock",
+                  "indent": 32,
+                  "entries": [
+                    {
+                      "type": "sectionTitle",
+                      "text": "Level 3"
+                    },
+                    {
+                      "type": "spoiler",
+                      "label": "Drop table",
+                      "text": "Coal (40%), Gold Ore (25%), Diamond (5%), Nothing (30%)"
+                    },
+                    {
+                      "type": "caption",
+                      "text": "Deepest nesting level \u2014 96px from the left edge."
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "spacer",
+          "height": 8
+        },
+        {
+          "type": "paragraph",
+          "text": "Indent blocks also work inside a row column \u2014 left column below is indented."
+        },
+        {
+          "type": "row",
+          "leftFraction": 0.55,
+          "left": [
+            {
+              "type": "caption",
+              "text": "With indent block"
+            },
+            {
+              "type": "indentBlock",
+              "indent": 24,
+              "entries": [
+                {
+                  "type": "paragraph",
+                  "text": "This text is indented inside the left column of a row."
+                },
+                {
+                  "type": "orderedList",
+                  "items": [
+                    "Step one inside indent",
+                    "Step two inside indent"
+                  ]
+                }
+              ]
+            }
+          ],
+          "right": [
+            {
+              "type": "caption",
+              "text": "Without indent block"
+            },
+            {
+              "type": "paragraph",
+              "text": "This text is not indented \u2014 it starts at the column edge for comparison."
+            },
+            {
+              "type": "orderedList",
+              "items": [
+                "Step one flush",
+                "Step two flush"
+              ]
+            }
+          ]
         }
       ]
     }

@@ -21,6 +21,10 @@
     if (e.leftFraction !== undefined && Math.abs(e.leftFraction - 0.5) > 0.001)
       r.leftFraction = e.leftFraction;
   }
+  if (e.type === "indentBlock") {
+    r.entries = (e.entries || []).map(serializeEntry);
+    if (e.indent !== undefined && e.indent !== 32) r.indent = e.indent;
+  }
   if (e.type === "gif") {
     r.frameCount    = e.frameCount    ?? 1;
     r.frameDuration = e.frameDuration ?? 0.1;
@@ -85,6 +89,10 @@ function validate() {
         if (!e.url?.trim())  iss.push({ level: "error", msg: `${loc}: URL is empty.` });
         else if (!/^https?:\/\//i.test(e.url))
           iss.push({ level: "warn", msg: `${loc}: URL scheme is not https:// or http:// — link will be blocked in-game.` });
+      }
+      if (e.type === "indentBlock") {
+        if (!e.entries?.length)
+          iss.push({ level: "warn", msg: `${loc}: Indent block has no child entries.` });
       }
     });
   });

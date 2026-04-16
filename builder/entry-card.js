@@ -1,7 +1,8 @@
 ﻿function deepCloneEntry(entry) {
   const clone = { ...entry, _id: uid() };
-  if (clone.left)  clone.left  = clone.left.map(deepCloneEntry);
-  if (clone.right) clone.right = clone.right.map(deepCloneEntry);
+  if (clone.left)    clone.left    = clone.left.map(deepCloneEntry);
+  if (clone.right)   clone.right   = clone.right.map(deepCloneEntry);
+  if (clone.entries) clone.entries = clone.entries.map(deepCloneEntry);
   return clone;
 }
 
@@ -366,7 +367,6 @@ function renderEntryCard(entry, idx, total, callbacks) {
   if (entry.type === "row") {
     
     const fracRow = h("div", { className: "field-row", style: { marginBottom: "8px", alignItems: "center", gap: "8px" } });
-    fracRow.appendChild(h("label", { className: "field-label", style: { margin: "0", whiteSpace: "nowrap" } }, "Left width"));
     const fracInp = h("input", { type: "range", min: "20", max: "80", step: "5", style: { flex: "1" } });
     fracInp.value = Math.round((entry.leftFraction ?? 0.5) * 100);
     const fracLbl = h("span", { style: { fontFamily: "var(--font-mono)", fontSize: "11px", color: "var(--text-dim)" } }, fracInp.value + "%");
@@ -463,6 +463,84 @@ function renderEntryCard(entry, idx, total, callbacks) {
     cols.appendChild(renderColumnEditor("left"));
     cols.appendChild(renderColumnEditor("right"));
     body.appendChild(cols);
+  }
+
+  if (entry.type === "indentBlock") {
+    // Indent amount control
+    const indentRow = h("div", { className: "field-row", style: { marginBottom: "8px", alignItems: "center", gap: "8px" } });
+    indentRow.appendChild(h("label", { className: "field-label", style: { margin: "0", whiteSpace: "nowrap" } }, "Indent (px)"));
+    const indentInp = h("input", { className: "input input-sm", type: "number", min: "0", max: "200", step: "8" });
+    indentInp.value = entry.indent ?? 32;
+    indentInp.addEventListener("input", e => silentUpd("indent", Math.max(0, parseInt(e.target.value) || 32)));
+    indentInp.addEventListener("change", e => structUpd("indent", Math.max(0, parseInt(e.target.value) || 32)));
+    indentRow.appendChild(indentInp);
+    body.appendChild(indentRow);
+
+    // Child entries list
+    const childItems = entry.entries || [];
+    const childLabel = h("div", { className: "row-col-label", style: { marginBottom: "6px" } }, "⇥ CHILD ENTRIES");
+    body.appendChild(childLabel);
+
+    const childEntriesEl = h("div", { className: "row-col-entries" });
+    childItems.forEach((sub, si) => {
+      const subCallbacks = {
+        onSilentUpd: (field, value) => { entry.entries[si] = { ...entry.entries[si], [field]: value }; },
+        onStructUpd: (field, value) => {
+          const updated = [...entry.entries];
+          updated[si] = { ...updated[si], [field]: value };
+          structUpd("entries", updated);
+        },
+        onDelete: () => {
+          const updated = [...entry.entries];
+          updated.splice(si, 1);
+          structUpd("entries", updated);
+        },
+        onMoveUp: si > 0 ? () => {
+          const updated = [...entry.entries];
+          [updated[si-1], updated[si]] = [updated[si], updated[si-1]];
+          structUpd("entries", updated);
+        } : null,
+        onMoveDown: si < childItems.length - 1 ? () => {
+          const updated = [...entry.entries];
+          [updated[si], updated[si+1]] = [updated[si+1], updated[si]];
+          structUpd("entries", updated);
+        } : null,
+        onDuplicate: () => {
+          const updated = [...entry.entries];
+          updated.splice(si + 1, 0, deepCloneEntry(sub));
+          structUpd("entries", updated);
+        },
+      };
+      childEntriesEl.appendChild(renderEntryCard(sub, si, childItems.length, subCallbacks));
+    });
+    body.appendChild(childEntriesEl);
+
+    // Add child entry picker
+    const addWrap = h("div", { style: { position: "relative", marginTop: "6px" } });
+    const addBtn  = h("button", { className: "row-add-btn",
+      onClick: evt => {
+        evt.stopPropagation();
+        document.querySelectorAll(".row-type-picker").forEach(el => el.remove());
+        const picker = h("div", { className: "row-type-picker" });
+        COLUMN_ENTRY_TYPES.forEach(t => {
+          const item = h("div", { className: "row-type-picker-item" });
+          item.appendChild(h("span", { className: "palette-icon", style: { background: t.color, width: "16px", height: "16px", fontSize: "10px" } }, t.icon));
+          item.appendChild(document.createTextNode(t.label));
+          item.addEventListener("click", () => {
+            picker.remove();
+            structUpd("entries", [...(entry.entries || []), defaultEntry(t.type)]);
+          });
+          picker.appendChild(item);
+        });
+        setTimeout(() => document.addEventListener("click", function closer() {
+          picker.remove();
+          document.removeEventListener("click", closer);
+        }, { once: true }), 0);
+        addWrap.appendChild(picker);
+      }
+    }, "+ Add Child Entry");
+    addWrap.appendChild(addBtn);
+    body.appendChild(addWrap);
   }
 
   card.appendChild(body);

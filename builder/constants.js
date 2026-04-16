@@ -14,6 +14,7 @@ const ENTRY_TYPES = [
   { type:"row",          label:"Row (2 columns)",  icon:"⊟",   color:"#5a3a8a", hasRow:1 },
   { type:"gif",          label:"Animated GIF",     icon:"▶",   color:"#1a7a6e", hasAlign:1, hasGif:1 },
   { type:"link",         label:"Link",             icon:"🔗",  color:"#1a5296", hasAlign:1, hasLink:1 },
+  { type:"indentBlock",  label:"Indent Block",      icon:"⇥",   color:"#5a6e3a", hasIndentBlock:1 },
 ];
 
 const COLUMN_ENTRY_TYPES = ENTRY_TYPES.filter(t => t.type !== 'row');
@@ -46,6 +47,7 @@ function defaultEntry(type) {
   if (type === "row")      { b.left = []; b.right = []; b.leftFraction = 0.5; }
   if (type === "gif")      { b.texture = ""; b.frameCount = 1; b.frameDuration = 0.1; b.scale = 1; b.columns = 0; b.rows = 1; }
   if (type === "link")     { b.text = ""; b.url = ""; }
+  if (type === "indentBlock") { b.indent = 32; b.entries = []; }
   
   return b;
 }

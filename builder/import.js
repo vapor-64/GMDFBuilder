@@ -42,6 +42,12 @@
     }
 
     
+    if (e.type === 'indentBlock') {
+      base.entries = importEntries(e.entries);
+      base.indent  = e.indent !== undefined ? e.indent : 32;
+    }
+
+    
     const meta = ENTRY_TYPES.find(t => t.type === base.type);
     if (meta?.hasText  && base.text    === undefined) base.text    = '';
     if (meta?.hasAlign && base.align   === undefined) base.align   = base.type === 'caption' ? 'center' : 'left';
