@@ -24,6 +24,7 @@
   if (e.type === "indentBlock") {
     r.entries = (e.entries || []).map(serializeEntry);
     if (e.indent !== undefined && e.indent !== 32) r.indent = e.indent;
+    if (e.showRule === false) r.showRule = false;
   }
   if (e.type === "gif") {
     r.frameCount    = e.frameCount    ?? 1;

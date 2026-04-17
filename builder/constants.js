@@ -47,7 +47,7 @@ function defaultEntry(type) {
   if (type === "row")      { b.left = []; b.right = []; b.leftFraction = 0.5; }
   if (type === "gif")      { b.texture = ""; b.frameCount = 1; b.frameDuration = 0.1; b.scale = 1; b.columns = 0; b.rows = 1; }
   if (type === "link")     { b.text = ""; b.url = ""; }
-  if (type === "indentBlock") { b.indent = 32; b.entries = []; }
+  if (type === "indentBlock") { b.indent = 32; b.showRule = true; b.entries = []; }
   
   return b;
 }

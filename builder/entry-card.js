@@ -473,13 +473,19 @@ function renderEntryCard(entry, idx, total, callbacks) {
     indentInp.value = entry.indent ?? 32;
     indentInp.addEventListener("input", e => silentUpd("indent", Math.max(0, parseInt(e.target.value) || 32)));
     indentInp.addEventListener("change", e => structUpd("indent", Math.max(0, parseInt(e.target.value) || 32)));
+    // Show rule checkbox — sits to the right of the indent input in the same row
+    const ruleCb  = h("input", { type: "checkbox", id: "showRule_" + entry._id, style: { cursor: "pointer" } });
+    ruleCb.checked = entry.showRule !== false;
+    ruleCb.addEventListener("change", e => structUpd("showRule", e.target.checked));
+    const ruleLbl = h("label", { htmlFor: "showRule_" + entry._id, className: "field-label",
+      style: { margin: "0", cursor: "pointer", userSelect: "none", whiteSpace: "nowrap" } }, "Show vertical rule");
     indentRow.appendChild(indentInp);
+    indentRow.appendChild(ruleCb);
+    indentRow.appendChild(ruleLbl);
     body.appendChild(indentRow);
 
     // Child entries list
     const childItems = entry.entries || [];
-    const childLabel = h("div", { className: "row-col-label", style: { marginBottom: "6px" } }, "⇥ CHILD ENTRIES");
-    body.appendChild(childLabel);
 
     const childEntriesEl = h("div", { className: "row-col-entries" });
     childItems.forEach((sub, si) => {

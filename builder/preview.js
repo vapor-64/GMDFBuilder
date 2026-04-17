@@ -335,18 +335,21 @@ function renderPreviewEntry(entry) {
       return h("div", { className: "pv-spacer", style: { height: (entry.height || 16) + "px" } });
 
     case "indentBlock": {
-      const indent = entry.indent ?? 32;
-      const wrap   = h("div", { style: { display: "flex", alignItems: "stretch", marginBottom: "4px" } });
-      const bar    = h("div", { style: {
-        flexShrink: "0",
-        width:      "2px",
-        marginLeft: (indent - 2) + "px",
-        background: "rgba(180,140,80,0.45)",
-        borderRadius: "1px",
-      }});
-      const childWrap = h("div", { style: { flex: "1", minWidth: "0", paddingLeft: "10px" } });
+      const indent   = entry.indent ?? 32;
+      const showRule = entry.showRule !== false;
+      const wrap     = h("div", { style: { display: "flex", alignItems: "stretch", marginBottom: "4px" } });
+      if (showRule) {
+        const bar = h("div", { style: {
+          flexShrink: "0",
+          width:      "2px",
+          marginLeft: (indent - 2) + "px",
+          background: "rgba(180,140,80,0.45)",
+          borderRadius: "1px",
+        }});
+        wrap.appendChild(bar);
+      }
+      const childWrap = h("div", { style: { flex: "1", minWidth: "0", paddingLeft: showRule ? "10px" : (indent + "px") } });
       (entry.entries || []).forEach(e => childWrap.appendChild(renderPreviewEntry(e)));
-      wrap.appendChild(bar);
       wrap.appendChild(childWrap);
       return wrap;
     }

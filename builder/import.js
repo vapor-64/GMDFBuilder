@@ -43,8 +43,9 @@
 
     
     if (e.type === 'indentBlock') {
-      base.entries = importEntries(e.entries);
-      base.indent  = e.indent !== undefined ? e.indent : 32;
+      base.entries  = importEntries(e.entries);
+      base.indent   = e.indent   !== undefined ? e.indent   : 32;
+      base.showRule = e.showRule !== undefined ? e.showRule : true;
     }
 
     
