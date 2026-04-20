@@ -30,9 +30,14 @@
 
     
     if (e.label     !== undefined) base.label     = e.label;
-
+    
     
     if (e.url       !== undefined) base.url       = e.url;
+    
+    // anchor — used on sectionTitle/paragraph as jump targets, and on internalLink as destination
+    if (e.anchor    !== undefined) base.anchor    = e.anchor;
+    if (e.mod       !== undefined) base.mod       = e.mod;
+    if (e.page      !== undefined) base.page      = e.page;
 
     
     if (e.type === 'row') {
@@ -78,6 +83,18 @@
       if (base.url   === undefined) base.url   = '';
       if (base.align === undefined) base.align = 'left';
     }
+    if (base.type === 'internalLink') {
+      if (base.text   === undefined) base.text   = '';
+      if (base.mod    === undefined) base.mod    = '';
+      if (base.page   === undefined) base.page   = '';
+      if (base.anchor === undefined) base.anchor = '';
+      if (base.align  === undefined) base.align  = 'left';
+    }
+    // Ensure anchorable entries always have a UUID anchor, even when importing
+    // older JSON files or hand-written files that predate this feature.
+    if (base.type === 'sectionTitle' || base.type === 'paragraph') {
+      if (!base.anchor) base.anchor = slugifyAnchor();
+    }
 
     return base;
   });
@@ -99,7 +116,8 @@ function applyImport(jsonText) {
 
   const pages = rawPages.map(p => ({
     _id:         uid(),
-    name:        p.name || 'Untitled',
+    id:          p.id          || '',
+    name:        p.name        || 'Untitled',
     headerImage: p.headerImage?.texture || p.headerImage || '',
     entries:     importEntries(p.entries),
   }));

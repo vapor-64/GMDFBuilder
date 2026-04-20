@@ -2,6 +2,9 @@
   const r = { type: e.type };
   if (e.text  !== undefined) r.text  = e.text;
   if (e.label !== undefined) r.label = e.label;
+  // anchor field — written for sectionTitle and paragraph when set
+  if (["sectionTitle", "paragraph"].includes(e.type) && e.anchor?.trim())
+    r.anchor = e.anchor.trim();
   
   if (e.align && !(e.type === "caption" && e.align === "center") && e.align !== "left") r.align = e.align;
   
@@ -33,6 +36,11 @@
     if (e.rows && e.rows > 1)       r.rows    = e.rows;
   }
   if (e.type === "link" && e.url !== undefined) r.url = e.url;
+  if (e.type === "internalLink") {
+    if (e.anchor?.trim()) r.anchor = e.anchor.trim();
+    if (e.page?.trim())   r.page   = e.page.trim();
+    if (e.mod?.trim())    r.mod    = e.mod.trim();
+  }
   return r;
 }
 
@@ -43,6 +51,7 @@ function generateJson() {
     modName: state.modName || "My Mod",
     pages: state.pages.map(p => {
       const o = { name: p.name || "Untitled" };
+      if (p.id?.trim()) o.id = p.id.trim();
       if (p.headerImage?.trim()) o.headerImage = { texture: p.headerImage };
       o.entries = p.entries.map(e => serializeEntry(e));
       return o;
@@ -89,7 +98,13 @@ function validate() {
         if (!e.text?.trim()) iss.push({ level: "error", msg: `${loc}: Label is empty.` });
         if (!e.url?.trim())  iss.push({ level: "error", msg: `${loc}: URL is empty.` });
         else if (!/^https?:\/\//i.test(e.url))
-          iss.push({ level: "warn", msg: `${loc}: URL scheme is not https:// or http:// — link will be blocked in-game.` });
+          iss.push({ level: "warn", msg: `${loc}: URL scheme is not https:// or http:// \u2014 link will be blocked in-game.` });
+      }
+      if (e.type === "internalLink") {
+        if (!e.text?.trim()) iss.push({ level: "error", msg: `${loc}: Label is empty.` });
+        const hasTarget = e.mod?.trim() || e.page?.trim() || e.anchor?.trim();
+        if (!hasTarget)
+          iss.push({ level: "error", msg: `${loc}: Must specify at least one of: mod, page, anchor.` });
       }
       if (e.type === "indentBlock") {
         if (!e.entries?.length)

@@ -96,6 +96,7 @@ function setEntries(entries) {
 }
 
 const collapsedEntries = new Set();
+const helpOpenEntries  = new Set();
 
 const assetStore = new Map(); 
 

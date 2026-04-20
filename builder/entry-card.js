@@ -1,5 +1,9 @@
 ﻿function deepCloneEntry(entry) {
   const clone = { ...entry, _id: uid() };
+  // Fresh UUID so the clone is independently linkable and doesn't alias the original
+  if (clone.type === 'sectionTitle' || clone.type === 'paragraph') {
+    clone.anchor = slugifyAnchor();
+  }
   if (clone.left)    clone.left    = clone.left.map(deepCloneEntry);
   if (clone.right)   clone.right   = clone.right.map(deepCloneEntry);
   if (clone.entries) clone.entries = clone.entries.map(deepCloneEntry);
@@ -38,6 +42,18 @@ function renderEntryCard(entry, idx, total, callbacks) {
   ));
 
   if (meta?.hasAlign) header.appendChild(renderAlignGroup(entry.align || "left", v => structUpd("align", v)));
+
+  // Divider style selector — rendered inline in the header, no body needed
+  if (entry.type === "divider") {
+    const sel = h("select", { className: "divider-style-select" });
+    DIVIDER_STYLES.forEach(s => {
+      const o = h("option", { value: s }, s);
+      if (s === (entry.style || "single")) o.selected = true;
+      sel.appendChild(o);
+    });
+    sel.addEventListener("change", e => structUpd("style", e.target.value));
+    header.appendChild(sel);
+  }
 
   
   if (meta?.hasFontSize) {
@@ -84,10 +100,47 @@ function renderEntryCard(entry, idx, total, callbacks) {
 
   const acts = h("div", { className: "entry-actions" });
 
+  // Help button
+  const helpOpen = helpOpenEntries.has(entry._id);
+  const helpInfo = ENTRY_HELP[entry.type];
+  if (helpInfo) {
+    const helpBtn = h("button", {
+      className:      "mini-btn help-entry-btn" + (helpOpen ? " active" : ""),
+      title:          "Help",
+      "data-tooltip": "Help",
+      onClick: () => {
+        if (helpOpenEntries.has(entry._id)) helpOpenEntries.delete(entry._id);
+        else                                helpOpenEntries.add(entry._id);
+        render();
+      }
+    }, "?");
+    acts.appendChild(helpBtn);
+  }
+
+  // Copy anchor button — only for anchorable entry types
+  if (entry.type === "sectionTitle" || entry.type === "paragraph") {
+    const copyAnchorBtn = h("button", {
+      className:        "mini-btn copy-anchor-btn",
+      title:            "Copy anchor ID",
+      "data-tooltip":   "Copy anchor ID",
+      onClick:   () => {
+        navigator.clipboard?.writeText(entry.anchor || "");
+        copyAnchorBtn.textContent = "\u2713";
+        copyAnchorBtn.classList.add("copied");
+        setTimeout(() => {
+          copyAnchorBtn.textContent = "\uD83D\uDD17";
+          copyAnchorBtn.classList.remove("copied");
+        }, 1500);
+      }
+    }, "\uD83D\uDD17");
+    acts.appendChild(copyAnchorBtn);
+  }
+
   
   acts.appendChild(h("button", {
-    className: "mini-btn collapse-btn" + (collapsed ? " collapsed" : ""),
-    title:     collapsed ? "Expand" : "Collapse",
+    className:      "mini-btn collapse-btn" + (collapsed ? " collapsed" : ""),
+    title:          collapsed ? "Expand" : "Collapse",
+    "data-tooltip": collapsed ? "Expand" : "Collapse",
     onClick:   () => {
       if (collapsedEntries.has(entry._id)) collapsedEntries.delete(entry._id);
       else                                  collapsedEntries.add(entry._id);
@@ -98,25 +151,25 @@ function renderEntryCard(entry, idx, total, callbacks) {
   
   if (cb.onMoveUp !== undefined) {
     
-    acts.appendChild(h("button", { className: "mini-btn move", title: "Move up",   disabled: !cb.onMoveUp,   onClick: () => cb.onMoveUp?.()   }, "↑"));
-    acts.appendChild(h("button", { className: "mini-btn move", title: "Move down", disabled: !cb.onMoveDown, onClick: () => cb.onMoveDown?.() }, "↓"));
+    acts.appendChild(h("button", { className: "mini-btn move", title: "Move up",   "data-tooltip": "Move up",   disabled: !cb.onMoveUp,   onClick: () => cb.onMoveUp?.()   }, "↑"));
+    acts.appendChild(h("button", { className: "mini-btn move", title: "Move down", "data-tooltip": "Move down", disabled: !cb.onMoveDown, onClick: () => cb.onMoveDown?.() }, "↓"));
   } else {
     
-    acts.appendChild(h("button", { className: "mini-btn move", title: "Move up",   disabled: idx === 0,
+    acts.appendChild(h("button", { className: "mini-btn move", title: "Move up",   "data-tooltip": "Move up",   disabled: idx === 0,
       onClick: () => { const e = [...pg().entries]; [e[idx-1], e[idx]] = [e[idx], e[idx-1]]; setEntries(e); } }, "↑"));
-    acts.appendChild(h("button", { className: "mini-btn move", title: "Move down", disabled: idx === total - 1,
+    acts.appendChild(h("button", { className: "mini-btn move", title: "Move down", "data-tooltip": "Move down", disabled: idx === total - 1,
       onClick: () => { const e = [...pg().entries]; [e[idx], e[idx+1]] = [e[idx+1], e[idx]]; setEntries(e); } }, "↓"));
   }
 
   
   if (cb.onDuplicate !== undefined) {
     
-    acts.appendChild(h("button", { className: "mini-btn dupe", title: "Duplicate",
+    acts.appendChild(h("button", { className: "mini-btn dupe", title: "Duplicate", "data-tooltip": "Duplicate",
       onClick: () => cb.onDuplicate()
     }, "⧉"));
   } else {
     
-    acts.appendChild(h("button", { className: "mini-btn dupe", title: "Duplicate",
+    acts.appendChild(h("button", { className: "mini-btn dupe", title: "Duplicate", "data-tooltip": "Duplicate",
       onClick: () => {
         const entries = [...pg().entries];
         entries.splice(idx + 1, 0, deepCloneEntry(entry));
@@ -126,14 +179,31 @@ function renderEntryCard(entry, idx, total, callbacks) {
   }
 
   
-  acts.appendChild(h("button", { className: "mini-btn danger", title: "Remove",
+  acts.appendChild(h("button", { className: "mini-btn danger", title: "Remove", "data-tooltip": "Remove",
     onClick: cb.onDelete || (() => setEntries(pg().entries.filter((_, i) => i !== idx)))
   }, "×"));
 
   header.appendChild(acts);
   card.appendChild(header);
 
-  
+  // Help popover — shown when the ? button is active
+  if (helpOpen && helpInfo) {
+    const pop = h("div", { className: "entry-help-popover" });
+
+    pop.appendChild(h("div", { className: "entry-help-summary" }, helpInfo.summary));
+
+    if (helpInfo.params.length > 0) {
+      const table = h("dl", { className: "entry-help-params" });
+      helpInfo.params.forEach(p => {
+        table.appendChild(h("dt", {}, p.name));
+        table.appendChild(h("dd", {}, p.desc));
+      });
+      pop.appendChild(table);
+    }
+
+    card.appendChild(pop);
+  }
+
   if (collapsed) return card;
 
   const body = h("div", { className: "entry-body" });
@@ -214,21 +284,7 @@ function renderEntryCard(entry, idx, total, callbacks) {
     body.appendChild(row);
   }
 
-  
-  if (entry.type === "divider") {
-    const f = h("div", { className: "field" });
-    f.appendChild(h("label", { className: "field-label" }, "Style"));
-    const sel = h("select", { className: "select input-sm" });
-    DIVIDER_STYLES.forEach(s => {
-      const o = h("option", { value: s }, s);
-      if (s === (entry.style || "single")) o.selected = true;
-      sel.appendChild(o);
-    });
-    sel.addEventListener("change", e => structUpd("style", e.target.value));
-    f.appendChild(sel); body.appendChild(f);
-  }
-
-  
+   
   if (entry.type === "spacer") {
     const f = h("div", { className: "field" });
     f.appendChild(h("label", { className: "field-label" }, "Height (px)"));
@@ -355,13 +411,100 @@ function renderEntryCard(entry, idx, total, callbacks) {
     ui.addEventListener("input", e => updateBadge(e.target.value));
     urlRow.appendChild(badge);
     uf.appendChild(urlRow);
-
-    const urlHint = h("div", {
-      style: { fontSize: "10px", color: "var(--text-dim)", fontFamily: "var(--font-mono)",
-               marginTop: "3px", lineHeight: "1.4" }
-    }, "Only https:// and http:// URLs will open in-game. Other schemes are blocked by GMDF.");
-    uf.appendChild(urlHint);
     body.appendChild(uf);
+  }
+
+  if (meta?.hasInternalLink) {
+    // Label
+    const lf = h("div", { className: "field" });
+    lf.appendChild(h("label", { className: "field-label" }, "Label"));
+    const li = h("input", { className: "input", placeholder: "\u2192 See the Crafting page" });
+    li.value = entry.text || "";
+    li.addEventListener("input", e => silentUpd("text", e.target.value));
+    lf.appendChild(renderI18nPicker(li));
+    body.appendChild(lf);
+
+    // Mod ID
+    const mf = h("div", { className: "field" });
+    mf.appendChild(h("label", { className: "field-label" }, "Target Mod UniqueID (blank = this mod)"));
+    const mi = h("input", { className: "input", placeholder: "e.g. author.ModName  (leave blank to link within this mod)" });
+    mi.value = entry.mod || "";
+    mi.addEventListener("input", e => structUpd("mod", e.target.value));
+    mf.appendChild(mi);
+    body.appendChild(mf);
+
+    // Page ID + Anchor in one row
+    const destRow = h("div", { className: "field-row" });
+
+    const pf = h("div", { className: "field" });
+    pf.appendChild(h("label", { className: "field-label" }, "Target Page ID (blank = first page)"));
+    const pi = h("input", { className: "input", placeholder: "e.g. crafting" });
+    pi.value = entry.page || "";
+    pi.addEventListener("input", e => structUpd("page", e.target.value));
+    pf.appendChild(pi);
+    destRow.appendChild(pf);
+
+    const af = h("div", { className: "field" });
+    af.appendChild(h("label", { className: "field-label" }, "Anchor (blank = page top)"));
+    const ai = h("input", { className: "input", placeholder: "e.g. advanced-recipes" });
+    ai.value = entry.anchor || "";
+    ai.addEventListener("input", e => structUpd("anchor", e.target.value));
+    af.appendChild(ai);
+    destRow.appendChild(af);
+
+    body.appendChild(destRow);
+
+    // Destination preview / validation hint
+    const isCrossMod = (entry.mod || "").trim().length > 0;
+    const targetPage = (entry.page || "").trim();
+    const targetAnchor = (entry.anchor || "").trim();
+
+    // For same-mod links we can validate the page ID against the current document
+    let hintText = "";
+    let hintOk   = true;
+
+    if (isCrossMod) {
+      hintText = "\u2139 Cross-mod link \u2014 target will be greyed out in-game if that mod has no documentation registered.";
+      hintOk   = null; // neutral
+    } else if (!targetPage && !targetAnchor) {
+      hintText = "\u26a0 Specify at least one of: page, anchor.";
+      hintOk   = false;
+    } else {
+      // Same-mod: check page ID against state.pages
+      const pageMatch = targetPage
+        ? state.pages.find(p => {
+            const derivedId = (p.id || p.name || "").toLowerCase().replace(/ /g, "-");
+            return derivedId === targetPage.toLowerCase();
+          })
+        : state.pages[0];
+
+      if (targetPage && !pageMatch) {
+        hintText = `\u2717 No page with ID \u201c${targetPage}\u201d found in this document. Check the page name or add an explicit id.`;
+        hintOk   = false;
+      } else if (targetAnchor) {
+        // Check if any top-level entry on the resolved page has a matching anchor
+        const entriesOnPage = pageMatch ? pageMatch.entries || [] : [];
+        const anchorMatch   = entriesOnPage.some(e =>
+          (e.anchor || "").toLowerCase() === targetAnchor.toLowerCase()
+        );
+        if (anchorMatch) {
+          hintText = `\u2713 Resolved: page \u201c${pageMatch.name}\u201d \u203a anchor \u201c${targetAnchor}\u201d`;
+          hintOk   = true;
+        } else {
+          hintText = `\u26a0 Anchor \u201c${targetAnchor}\u201d not found on page \u201c${pageMatch ? pageMatch.name : "(unknown)"}\u201d. Add an \"anchor\" field to the target sectionTitle or paragraph.`;
+          hintOk   = false;
+        }
+      } else {
+        hintText = `\u2713 Resolved: page \u201c${pageMatch.name}\u201d (top)`;
+        hintOk   = true;
+      }
+    }
+
+    const hintColor = hintOk === null ? "var(--md-text-dim)" : hintOk ? "var(--md-ok)" : "var(--md-warn)";
+    body.appendChild(h("div", {
+      className: "internal-link-hint",
+      style: { color: hintColor }
+    }, hintText));
   }
 
   if (entry.type === "row") {

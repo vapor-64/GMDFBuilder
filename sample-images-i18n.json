@@ -4,6 +4,7 @@
   "modName": "{{i18n:modName}}",
   "pages": [
     {
+      "id": "overview",
       "name": "{{i18n:page.overview}}",
       "headerImage": {
         "texture": "assets/header.png"
@@ -115,23 +116,29 @@
           "url": "https://www.nexusmods.com/stardewvalley"
         },
         {
+          "type": "internalLink",
+          "text": "{{i18n:link.internal}}",
+          "page": "details",
+          "anchor": "crafting-anchor"
+        },
+        {
           "type": "divider",
           "style": "double"
         },
         {
           "type": "sectionTitle",
-          "text": "Indent Block Tests"
+          "text": "Indent Block"
         },
         {
           "type": "paragraph",
-          "text": "A basic indent block (32px) containing a paragraph and a list."
+          "text": "An indent block groups related content with a visual left rule and offset."
         },
         {
           "type": "indentBlock",
           "entries": [
             {
               "type": "paragraph",
-              "text": "Level 1 — this paragraph is indented 32px."
+              "text": "This paragraph is indented 32px from the left edge. Content inside an indent block wraps within the reduced width."
             },
             {
               "type": "list",
@@ -139,24 +146,6 @@
                 "Indented bullet one",
                 "Indented bullet two"
               ]
-            }
-          ]
-        },
-        {
-          "type": "spacer",
-          "height": 8
-        },
-        {
-          "type": "paragraph",
-          "text": "Two levels of nesting — each indentBlock adds 32px on top of the previous."
-        },
-        {
-          "type": "indentBlock",
-          "indent": 32,
-          "entries": [
-            {
-              "type": "paragraph",
-              "text": "Level 1 — outer indent block."
             },
             {
               "type": "indentBlock",
@@ -164,80 +153,40 @@
               "entries": [
                 {
                   "type": "paragraph",
-                  "text": "Level 2 — nested 64px from the left edge."
-                },
-                {
-                  "type": "list",
-                  "items": [
-                    "Nested bullet one",
-                    "Nested bullet two"
-                  ]
+                  "text": "A nested indent block adds another 32px, useful for sub-categories or step breakdowns."
                 }
               ]
             }
           ]
+        }
+      ]
+    },
+    {
+      "id": "details",
+      "name": "{{i18n:page.details}}",
+      "entries": [
+        {
+          "type": "divider",
+          "style": "iconCentered"
         },
         {
-          "type": "spacer",
-          "height": 8
+          "type": "sectionTitle",
+          "text": "{{i18n:section.crafting}}",
+          "anchor": "crafting-anchor"
         },
         {
           "type": "paragraph",
-          "text": "Three levels of nesting with mixed entry types at each depth."
+          "text": "{{i18n:crafting.intro}}"
         },
         {
-          "type": "indentBlock",
-          "indent": 32,
-          "entries": [
-            {
-              "type": "sectionTitle",
-              "text": "Level 1"
-            },
-            {
-              "type": "keyValue",
-              "key": "Category",
-              "value": "Weapon"
-            },
-            {
-              "type": "indentBlock",
-              "indent": 32,
-              "entries": [
-                {
-                  "type": "sectionTitle",
-                  "text": "Level 2"
-                },
-                {
-                  "type": "keyValue",
-                  "key": "Damage",
-                  "value": "25"
-                },
-                {
-                  "type": "keyValue",
-                  "key": "Speed",
-                  "value": "1.4x"
-                },
-                {
-                  "type": "indentBlock",
-                  "indent": 32,
-                  "entries": [
-                    {
-                      "type": "sectionTitle",
-                      "text": "Level 3"
-                    },
-                    {
-                      "type": "spoiler",
-                      "label": "Drop table",
-                      "text": "Coal (40%), Gold Ore (25%), Diamond (5%), Nothing (30%)"
-                    },
-                    {
-                      "type": "caption",
-                      "text": "Deepest nesting level — 96px from the left edge."
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+          "type": "keyValue",
+          "key": "{{i18n:kv.key1}}",
+          "value": "{{i18n:kv.val1}}"
+        },
+        {
+          "type": "keyValue",
+          "key": "{{i18n:kv.key2}}",
+          "value": "{{i18n:kv.val2}}"
         }
       ]
     }

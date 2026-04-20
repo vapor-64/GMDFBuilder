@@ -322,9 +322,77 @@ function renderPreviewEntry(entry) {
       if (!isSafe && url) {
         const warn = h("span", {
           style: { fontSize: "10px", color: "#c03030", fontFamily: "var(--font-mono)", marginLeft: "6px" }
-        }, "⚠ unsafe scheme — blocked in-game");
+        }, "\u26a0 unsafe scheme \u2014 blocked in-game");
         wrap.appendChild(warn);
       }
+      return wrap;
+    }
+
+    case "internalLink": {
+      const label  = resolveI18n(entry.text) || "(no label)";
+      const align  = entry.align || "left";
+      const mod    = (entry.mod    || "").trim();
+      const page   = (entry.page   || "").trim();
+      const anchor = (entry.anchor || "").trim();
+
+      // Determine whether the target is resolvable within the current document
+      const isCrossMod = mod.length > 0;
+      let resolvable = true;
+      if (!isCrossMod) {
+        if (page) {
+          const pageMatch = state.pages.find(p => {
+            const derivedId = (p.id || p.name || "").toLowerCase().replace(/ /g, "-");
+            return derivedId === page.toLowerCase();
+          });
+          resolvable = !!pageMatch;
+        }
+      }
+
+      const wrap = h("div", { style: { marginBottom: "4px", textAlign: align } });
+
+      const a = h("a", {
+        style: {
+          fontFamily:     "'SVThin', sans-serif",
+          fontSize:       "14px",
+          color:          resolvable ? "#1e7a45" : "#888",
+          textDecoration: "underline",
+          cursor:         "pointer",
+          opacity:        resolvable ? "1" : "0.55",
+        }
+      }, label);
+
+      // In the preview, clicking navigates to the target page if same-mod and resolvable
+      if (!isCrossMod && resolvable && page) {
+        a.addEventListener("click", e => {
+          e.preventDefault();
+          const pageIdx = state.pages.findIndex(p => {
+            const derivedId = (p.id || p.name || "").toLowerCase().replace(/ /g, "-");
+            return derivedId === page.toLowerCase();
+          });
+          if (pageIdx >= 0) setState({ activePageIdx: pageIdx });
+        });
+      }
+
+      wrap.appendChild(a);
+
+      // Destination badge shown below the link
+      const parts = [];
+      if (isCrossMod)  parts.push("mod: " + mod);
+      if (page)        parts.push("page: " + page);
+      if (anchor)      parts.push("#" + anchor);
+      const badgeText = parts.length ? parts.join("  \u203a  ") : "(no destination set)";
+      const badgeColor = resolvable ? "rgba(30,122,69,0.75)" : "rgba(160,80,0,0.75)";
+
+      wrap.appendChild(h("div", {
+        style: {
+          fontSize: "9px",
+          fontFamily: "var(--font-mono)",
+          color: badgeColor,
+          marginTop: "1px",
+          letterSpacing: "0.2px",
+        }
+      }, badgeText));
+
       return wrap;
     }
 

@@ -24,7 +24,8 @@ function renderAlignGroup(current, onChange) {
       { className: "align-btn" + (current === a ? " active" : ""), onClick: () => onChange(a) },
       a === "left" ? "◧" : a === "center" ? "◫" : "◨"
     );
-    b.title = a[0].toUpperCase() + a.slice(1);
+    b.title           = a[0].toUpperCase() + a.slice(1);
+    b.dataset.tooltip = a[0].toUpperCase() + a.slice(1);
     g.appendChild(b);
   });
   return g;
@@ -146,9 +147,10 @@ function attachSpritePicker(inputEl, wrap) {
 
   
   const toolbarBtn = h("button", {
-    className: "sp-toolbar-btn",
-    title:     "Insert sprite  [(QUAL)ID]",
-    type:      "button",
+    className:      "sp-toolbar-btn",
+    title:          "Insert sprite",
+    "data-tooltip": "Insert sprite",
+    type:           "button",
     onClick:   evt => {
       evt.stopPropagation();
       

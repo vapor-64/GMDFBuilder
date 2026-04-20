@@ -307,6 +307,14 @@ function render() {
     pgNInp.addEventListener("blur",  () => render());
     pgNF.appendChild(pgNInp); pSet.appendChild(pgNF);
 
+    const pgIdF = h("div", { className: "field", style: { flex: "1" } });
+    pgIdF.appendChild(h("label", { className: "field-label" }, "Page ID (optional — for internal link targets)"));
+    const pgIdInp = h("input", { className: "input", placeholder: "e.g. crafting  (auto-derived from name if blank)" });
+    pgIdInp.value = page.id || "";
+    pgIdInp.addEventListener("input", e => silentPageUpdate(state.activePageIdx, { id: e.target.value }));
+    pgIdInp.addEventListener("blur",  () => render());
+    pgIdF.appendChild(pgIdInp); pSet.appendChild(pgIdF);
+
     const hdrIF = h("div", { className: "field", style: { flex: "2" } });
     hdrIF.appendChild(h("label", { className: "field-label" }, "Header Image (optional)"));
     const hdrIInp = h("input", { className: "input", placeholder: "banner.png" });
