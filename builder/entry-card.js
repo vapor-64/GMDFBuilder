@@ -104,17 +104,27 @@ function renderEntryCard(entry, idx, total, callbacks) {
   const helpOpen = helpOpenEntries.has(entry._id);
   const helpInfo = ENTRY_HELP[entry.type];
   if (helpInfo) {
+    const entrySeen = helpSeenEntryKey(entry.type);
     const helpBtn = h("button", {
-      className:      "mini-btn help-entry-btn" + (helpOpen ? " active" : ""),
+      className:      "mini-btn help-entry-btn" + (helpOpen ? " active" : "") + (isHelpSeen(entrySeen) ? "" : " help-entry-btn-unseen"),
       title:          "Help",
       "data-tooltip": "Help",
       onClick: () => {
+        markHelpSeen(entrySeen);
+        helpBtn.classList.remove("help-entry-btn-unseen");
+        const ring = helpBtnWrap.querySelector(".help-orbit-ring");
+        if (ring) ring.remove();
         if (helpOpenEntries.has(entry._id)) helpOpenEntries.delete(entry._id);
         else                                helpOpenEntries.add(entry._id);
         render();
       }
     }, "?");
-    acts.appendChild(helpBtn);
+    const helpBtnWrap = h("div", { className: "help-btn-wrap" });
+    helpBtnWrap.appendChild(helpBtn);
+    if (!isHelpSeen(entrySeen)) {
+      helpBtnWrap.appendChild(h("span", { className: "help-orbit-ring" }));
+    }
+    acts.appendChild(helpBtnWrap);
   }
 
   // Copy anchor button — only for anchorable entry types

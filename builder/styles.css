@@ -1335,7 +1335,7 @@ input, textarea, select, button { font-family: inherit; }
 .help-btn {
   width: 28px;
   height: 28px;
-  border-radius: 50%;
+  border-radius: var(--radius-sm);
   border: 1px solid var(--md-border);
   background: var(--md-s2);
   color: var(--md-text-sec);
@@ -1467,4 +1467,71 @@ input, textarea, select, button { font-family: inherit; }
   padding: 5px 14px;
   pointer-events: none;
   white-space: nowrap;
+}
+
+/* ── Responsive: hide title text on narrow viewports ───────────────────── */
+@media (max-width: 900px) {
+  .header-title-text {
+    display: none;
+  }
+}
+
+/* ── Help button highlight (unseen state) ───────────────────────────────── */
+@keyframes help-border-spin {
+  0%   { --help-angle: 0deg; }
+  100% { --help-angle: 360deg; }
+}
+
+@property --help-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+/* The orbit ring is rendered as a sibling <span class="help-orbit-ring">
+   injected next to the button, so it never conflicts with ::before/::after
+   used by the tooltip system. */
+/* Wrapper that tightly bounds the orbit ring to just the button */
+.help-btn-wrap {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+}
+
+.help-orbit-ring {
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  pointer-events: none;
+  animation: help-border-spin 2s linear infinite;
+  background: conic-gradient(
+    from var(--help-angle),
+    transparent 0%,
+    transparent 50%,
+    rgba(124,143,245,0.3) 68%,
+    rgba(180,195,255,0.95) 78%,
+    rgba(124,143,245,0.3) 88%,
+    transparent 100%
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  padding: 2px;
+  z-index: 1;
+}
+
+.help-btn-unseen,
+.help-entry-btn-unseen {
+  color: var(--md-pri) !important;
+  border-color: transparent !important;
+}
+
+/* ── Header icon wrap (no animation) ──────────────────────────────────── */
+.header-icon-wrap {
+  position: relative;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }

@@ -16,7 +16,7 @@ function render() {
     alt:   "GMDF Icon",
     style: { width: "48px", height: "36px", imageRendering: "pixelated", flexShrink: "0" }
   });
-  const hdrText = h("div", {});
+  const hdrText = h("div", { className: "header-title-text" });
   hdrText.appendChild(h("h1", {}, "GMDF Documentation Builder"));
   hdrText.appendChild(h("p",  {}, "Build documentation.json visually \u2014 drag, drop, and export"));
   hl.appendChild(hdrIcon);
@@ -51,56 +51,26 @@ function render() {
   }
   ha.appendChild(saveGroup);
 
-  // Sample group
-  const activeVariantKey   = state.sampleVariantKey || "no-images-no-i18n";
-  const activeVariantLabel = SAMPLE_VARIANTS[activeVariantKey]?.label ?? "Sample";
-  const sampleGroup = h("div", { className: "header-tool-group sample-picker-group" });
-  const sampleLoadBtn = h("button", {
-    className: "header-tool-btn",
-    style:     { fontWeight: "700" },
-    title:     `Load sample: ${activeVariantLabel}`,
-    onClick:   () => loadSampleVariant(activeVariantKey)
-  }, "Sample");
-  const sampleChevronBtn = h("button", {
-    className: "header-tool-btn sample-chevron-btn",
-    title:     `Current: ${activeVariantLabel} \u2014 click to change`,
-    onClick:   evt => {
-      evt.stopPropagation();
-      const existing = sampleGroup.querySelector(".sample-picker-dropdown");
-      if (existing) { existing.remove(); return; }
-      const dropdown = h("div", { className: "sample-picker-dropdown" });
-      dropdown.appendChild(h("div", { className: "sample-picker-header" }, "Load sample as\u2026"));
-      Object.entries(SAMPLE_VARIANTS).forEach(([key, variant]) => {
-        const isActive = activeVariantKey === key;
-        const item = h("div", {
-          className: "sample-picker-item" + (isActive ? " active" : ""),
-          title:     variant.label,
-          onClick:   () => { state.sampleVariantKey = key; dropdown.remove(); render(); }
-        }, variant.label);
-        dropdown.appendChild(item);
-      });
-      setTimeout(() => {
-        function closer(e) {
-          if (!sampleGroup.contains(e.target)) { dropdown.remove(); document.removeEventListener("mousedown", closer); }
-        }
-        document.addEventListener("mousedown", closer);
-      }, 0);
-      sampleGroup.appendChild(dropdown);
-    }
-  }, "\u25be");
-  sampleGroup.appendChild(sampleLoadBtn);
-  sampleGroup.appendChild(sampleChevronBtn);
-  ha.appendChild(sampleGroup);
-
   ha.appendChild(h("div", { className: "header-divider" }));
 
   // Help button — hold to reveal overlay
   const helpBtn = h("button", {
-    className:   "help-btn",
+    className:   "help-btn" + (isHelpSeen(HELP_SEEN_HEADER) ? "" : " help-btn-unseen"),
     title:       "Hold for help",
-    onMousedown: () => showHelpOverlay(),
+    onMousedown: () => {
+      markHelpSeen(HELP_SEEN_HEADER);
+      helpBtn.classList.remove("help-btn-unseen");
+      const ring = helpBtnWrap.querySelector(".help-orbit-ring");
+      if (ring) ring.remove();
+      showHelpOverlay();
+    },
   }, "?");
-  ha.appendChild(helpBtn);
+  const helpBtnWrap = h("div", { className: "help-btn-wrap" });
+  helpBtnWrap.appendChild(helpBtn);
+  if (!isHelpSeen(HELP_SEEN_HEADER)) {
+    helpBtnWrap.appendChild(h("span", { className: "help-orbit-ring" }));
+  }
+  ha.appendChild(helpBtnWrap);
 
   ha.appendChild(h("button", {
     className: "tab-btn",
@@ -235,6 +205,60 @@ function render() {
       }, "\uD83C\uDF10 i18n"));
     }
     toolBar.appendChild(i18nGroup);
+
+    // Sample group — lives in the toolbar next to mod name
+    toolBar.appendChild(h("div", { className: "header-divider" }));
+    const activeVariantKey   = state.sampleVariantKey || "no-images-no-i18n";
+    const activeVariantLabel = SAMPLE_VARIANTS[activeVariantKey]?.label ?? "Sample";
+    const sampleGroup = h("div", { className: "header-tool-group sample-picker-group" });
+    const sampleLoadBtn = h("button", {
+      className: "header-tool-btn",
+      style:     { fontWeight: "700" },
+      title:     `Load sample: ${activeVariantLabel}`,
+      onClick:   () => loadSampleVariant(activeVariantKey)
+    }, "Load Sample");
+    const sampleChevronBtn = h("button", {
+      className: "header-tool-btn sample-chevron-btn",
+      title:     `Current: ${activeVariantLabel} \u2014 click to change`,
+      onClick:   evt => {
+        evt.stopPropagation();
+        const existing = sampleGroup.querySelector(".sample-picker-dropdown");
+        if (existing) { existing.remove(); return; }
+        const dropdown = h("div", { className: "sample-picker-dropdown" });
+        dropdown.appendChild(h("div", { className: "sample-picker-header" }, "Load sample as\u2026"));
+        Object.entries(SAMPLE_VARIANTS).forEach(([key, variant]) => {
+          const isActive = activeVariantKey === key;
+          const item = h("div", {
+            className: "sample-picker-item" + (isActive ? " active" : ""),
+            title:     variant.label,
+            onClick:   () => { state.sampleVariantKey = key; dropdown.remove(); render(); }
+          }, variant.label);
+          dropdown.appendChild(item);
+        });
+        sampleGroup.appendChild(dropdown);
+        // Flip/shift so the dropdown never overflows the viewport
+        requestAnimationFrame(() => {
+          const r = dropdown.getBoundingClientRect();
+          if (r.right > window.innerWidth - 8) {
+            dropdown.style.left  = "auto";
+            dropdown.style.right = "0";
+          }
+          if (r.bottom > window.innerHeight - 8) {
+            dropdown.style.top    = "auto";
+            dropdown.style.bottom = "calc(100% + 4px)";
+          }
+        });
+        setTimeout(() => {
+          function closer(e) {
+            if (!sampleGroup.contains(e.target)) { dropdown.remove(); document.removeEventListener("mousedown", closer); }
+          }
+          document.addEventListener("mousedown", closer);
+        }, 0);
+      }
+    }, "\u25be");
+    sampleGroup.appendChild(sampleLoadBtn);
+    sampleGroup.appendChild(sampleChevronBtn);
+    toolBar.appendChild(sampleGroup);
 
     body.appendChild(toolBar);
 

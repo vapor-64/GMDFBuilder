@@ -411,3 +411,18 @@ function renderListItems(items, isOrdered, onChange) {
 
   return w;
 }
+
+// ── Help-seen tracking ────────────────────────────────────────────────────
+const HELP_SEEN_HEADER = "gmdf_help_seen_header";
+
+function helpSeenEntryKey(type) {
+  return "gmdf_help_seen_entry_" + type;
+}
+
+function isHelpSeen(key) {
+  return !!localStorage.getItem(key);
+}
+
+function markHelpSeen(key) {
+  localStorage.setItem(key, "1");
+}
