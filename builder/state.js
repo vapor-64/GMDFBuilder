@@ -68,7 +68,10 @@ function pg() {
   return state.pages[state.activePageIdx] || state.pages[0];
 }
 
-function setState(patch) {
+let _pendingAnchor = null;
+
+function setState(patch, anchorSelector) {
+  if (anchorSelector) _pendingAnchor = anchorSelector;
   Object.assign(state, patch);
   persistState();   
   render();

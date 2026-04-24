@@ -1527,6 +1527,17 @@ input, textarea, select, button { font-family: inherit; }
   border-color: transparent !important;
 }
 
+/* ── Anchor flash: brief highlight when an internal link lands on a target ── */
+.pv-anchor-flash {
+  animation: pv-anchor-flash-anim 1.5s ease-out;
+  border-radius: 3px;
+}
+@keyframes pv-anchor-flash-anim {
+  0%   { background: rgba(255, 220, 120, 0);    box-shadow: 0 0 0 0 rgba(255, 220, 120, 0); }
+  15%  { background: rgba(255, 220, 120, 0.85); box-shadow: 0 0 0 6px rgba(255, 220, 120, 0.55); }
+  100% { background: rgba(255, 220, 120, 0);    box-shadow: 0 0 0 0 rgba(255, 220, 120, 0); }
+}
+
 /* ── Header icon wrap (no animation) ──────────────────────────────────── */
 .header-icon-wrap {
   position: relative;

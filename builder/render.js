@@ -518,7 +518,63 @@ function render() {
 
   app.appendChild(body);
 
-  requestAnimationFrame(() => requestAnimationFrame(() => window.scrollTo({ top: scrollY, behavior: "instant" })));
+  if (_pendingAnchor) {
+    const anchor = _pendingAnchor;
+    _pendingAnchor = null;
+    // Two rAFs to let layout + image loads settle, then position the target.
+    // In preview mode the real scroll container is an inner .pv-content element
+    // (overflow-y:auto); at small window sizes it overflows and we can scroll
+    // it. At large window sizes the content fits entirely and there is nothing
+    // to scroll — in that case we simply flash the target so the user sees
+    // where the link landed. We deliberately do NOT scroll the window, because
+    // the document itself has no relation to the target's visual position.
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      const target = document.querySelector(`[data-anchor="${anchor}"]`);
+      if (!target) return;
+
+      const scroller = findScrollableAncestor(target);
+      if (scroller && scroller !== document.scrollingElement &&
+          scroller !== document.documentElement && scroller !== document.body) {
+        // Inner container that actually overflows — scroll it.
+        const tRect = target.getBoundingClientRect();
+        const sRect = scroller.getBoundingClientRect();
+        const desired = (tRect.top - sRect.top) + scroller.scrollTop - 16;
+        scroller.scrollTo({ top: Math.max(0, desired), behavior: "instant" });
+      }
+      // Always flash the target, regardless of whether we scrolled. This
+      // provides a visual cue when no scroll was needed (large window) and
+      // also reinforces the landing spot when scrolling did happen.
+      flashAnchorTarget(target);
+    }));
+  } else {
+    requestAnimationFrame(() => requestAnimationFrame(() => window.scrollTo({ top: scrollY, behavior: "instant" })));
+  }
+}
+
+// Walk up the ancestor chain and return the first element whose computed
+// overflowY is auto/scroll/overlay AND which is actually overflowing. Falls
+// back to the document scrolling element if nothing else qualifies.
+function findScrollableAncestor(el) {
+  let node = el.parentElement;
+  while (node && node !== document.body && node !== document.documentElement) {
+    const oy = getComputedStyle(node).overflowY;
+    const scrollable = oy === "auto" || oy === "scroll" || oy === "overlay";
+    if (scrollable && node.scrollHeight > node.clientHeight + 1) {
+      return node;
+    }
+    node = node.parentElement;
+  }
+  return document.scrollingElement || document.documentElement;
+}
+
+// Briefly highlight an anchor target so the user can see where an internal
+// link landed, even if no scrolling was required.
+function flashAnchorTarget(el) {
+  el.classList.remove("pv-anchor-flash"); // restart animation if re-triggered
+  // Force reflow so removing + re-adding the class actually restarts the anim.
+  void el.offsetWidth;
+  el.classList.add("pv-anchor-flash");
+  setTimeout(() => el.classList.remove("pv-anchor-flash"), 1600);
 }
 
 render();

@@ -137,6 +137,78 @@
         },
         {
           "type": "sectionTitle",
+          "text": "{{i18n:section.intro}}"
+        },
+        {
+          "type": "paragraph",
+          "text": "{{i18n:intro.text}}"
+        },
+        {
+          "type": "list",
+          "items": [
+            "{{i18n:intro.item1}}",
+            "{{i18n:intro.item2}}",
+            "{{i18n:intro.item3}}"
+          ]
+        },
+        {
+          "type": "row",
+          "left": [
+            {
+              "type": "spoiler",
+              "label": "{{i18n:spoiler.label}}",
+              "text": "{{i18n:spoiler.text}}"
+            }
+          ],
+          "right": [
+            {
+              "type": "keyValue",
+              "key": "{{i18n:kv.key1}}",
+              "value": "{{i18n:kv.val1}}"
+            },
+            {
+              "type": "keyValue",
+              "key": "{{i18n:kv.key2}}",
+              "value": "{{i18n:kv.val2}}"
+            }
+          ]
+        },
+        {
+          "type": "divider",
+          "style": "dotted"
+        },
+        {
+          "type": "sectionTitle",
+          "text": "{{i18n:section.foraging}}"
+        },
+        {
+          "type": "paragraph",
+          "text": "{{i18n:foraging.intro}}"
+        },
+        {
+          "type": "orderedList",
+          "items": [
+            "{{i18n:foraging.item1}}",
+            "{{i18n:foraging.item2}}",
+            "{{i18n:foraging.item3}}",
+            "{{i18n:foraging.item4}}"
+          ]
+        },
+        {
+          "type": "indentBlock",
+          "entries": [
+            {
+              "type": "paragraph",
+              "text": "{{i18n:foraging.note}}"
+            }
+          ]
+        },
+        {
+          "type": "divider",
+          "style": "dotted"
+        },
+        {
+          "type": "sectionTitle",
           "text": "{{i18n:section.crafting}}",
           "anchor": "crafting-anchor"
         },
@@ -153,6 +225,31 @@
           "type": "keyValue",
           "key": "{{i18n:kv.key2}}",
           "value": "{{i18n:kv.val2}}"
+        },
+        {
+          "type": "divider",
+          "style": "dotted"
+        },
+        {
+          "type": "sectionTitle",
+          "text": "{{i18n:section.upgrades}}"
+        },
+        {
+          "type": "paragraph",
+          "text": "{{i18n:upgrades.intro}}"
+        },
+        {
+          "type": "orderedList",
+          "items": [
+            "{{i18n:upgrades.item1}}",
+            "{{i18n:upgrades.item2}}",
+            "{{i18n:upgrades.item3}}",
+            "{{i18n:upgrades.item4}}"
+          ]
+        },
+        {
+          "type": "caption",
+          "text": "{{i18n:upgrades.caption}}"
         }
       ]
     }

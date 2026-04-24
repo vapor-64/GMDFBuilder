@@ -162,12 +162,84 @@
         },
         {
           "type": "sectionTitle",
+          "text": "Introduction"
+        },
+        {
+          "type": "paragraph",
+          "text": "This section appears at the top of the Details page. The internal link from Overview scrolls past this section to reach Crafting Recipes below."
+        },
+        {
+          "type": "list",
+          "items": [
+            "This is the first section on the Details page",
+            "The internal link target is further down",
+            "Scroll down to see where the link lands"
+          ]
+        },
+        {
+          "type": "row",
+          "left": [
+            {
+              "type": "spoiler",
+              "label": "What is this page?",
+              "text": "This is the Details page. It has multiple sections so you can verify that internal links scroll to the correct anchor, not just the top of the page."
+            }
+          ],
+          "right": [
+            {
+              "type": "keyValue",
+              "key": "Page",
+              "value": "Details"
+            },
+            {
+              "type": "keyValue",
+              "key": "Anchor target",
+              "value": "crafting-anchor"
+            }
+          ]
+        },
+        {
+          "type": "divider",
+          "style": "dotted"
+        },
+        {
+          "type": "sectionTitle",
+          "text": "Foraging & Drops"
+        },
+        {
+          "type": "paragraph",
+          "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. This section is between the intro and the crafting anchor \u2014 more content for the link to scroll past."
+        },
+        {
+          "type": "orderedList",
+          "items": [
+            "Spring Onion \u2014 found in Cindersap Forest in Spring",
+            "Daffodil \u2014 common forage item in Spring",
+            "Leek \u2014 forages in Spring, sells for 60g",
+            "Dandelion \u2014 found in Spring, used in cooking"
+          ]
+        },
+        {
+          "type": "indentBlock",
+          "entries": [
+            {
+              "type": "paragraph",
+              "text": "Forage items can be sold, gifted, or used in cooking recipes. Quality increases with Foraging skill level."
+            }
+          ]
+        },
+        {
+          "type": "divider",
+          "style": "dotted"
+        },
+        {
+          "type": "sectionTitle",
           "text": "Crafting Recipes",
           "anchor": "crafting-anchor"
         },
         {
           "type": "paragraph",
-          "text": "This page was navigated to via an internal link from the Overview page."
+          "text": "You arrived here via the internal link from the Overview page. The anchor \"crafting-anchor\" targets this section specifically, scrolling past the intro and foraging sections above."
         },
         {
           "type": "keyValue",
@@ -178,6 +250,36 @@
           "type": "keyValue",
           "key": "Result",
           "value": "Chest"
+        },
+        {
+          "type": "keyValue",
+          "key": "Skill",
+          "value": "None required"
+        },
+        {
+          "type": "divider",
+          "style": "dotted"
+        },
+        {
+          "type": "sectionTitle",
+          "text": "Upgrade Costs"
+        },
+        {
+          "type": "paragraph",
+          "text": "Tool upgrades are purchased from Clint the Blacksmith. Each upgrade improves the tool's efficiency and reach."
+        },
+        {
+          "type": "orderedList",
+          "items": [
+            "Copper \u2014 2,000g + 5 Copper Bars",
+            "Steel \u2014 5,000g + 5 Iron Bars",
+            "Gold \u2014 10,000g + 5 Gold Bars",
+            "Iridium \u2014 25,000g + 5 Iridium Bars"
+          ]
+        },
+        {
+          "type": "caption",
+          "text": "Upgrades take 2 in-game days. Clint keeps your tool during that time."
         }
       ]
     }

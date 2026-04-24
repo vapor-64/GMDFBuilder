@@ -102,6 +102,7 @@ function renderPreviewEntry(entry) {
     case "sectionTitle": {
       const fs = entry.fontSize ?? DEFAULT_FONT_SIZES.sectionTitle;
       const el = h("div", { className: "pv-section-title", style: { textAlign: align, fontSize: fs + "px" } });
+      if (entry.anchor) el.dataset.anchor = entry.anchor;
       el.appendChild(renderInlineContent(entry.text || "(empty)", fs));
       return el;
     }
@@ -109,6 +110,7 @@ function renderPreviewEntry(entry) {
     case "paragraph": {
       const fs = entry.fontSize ?? DEFAULT_FONT_SIZES.paragraph;
       const el = h("div", { className: "pv-paragraph", style: { textAlign: align, fontSize: fs + "px" } });
+      if (entry.anchor) el.dataset.anchor = entry.anchor;
       const lines = (entry.text || "(empty)").split('\n');
       lines.forEach((line, li) => {
         el.appendChild(renderInlineContent(line, fs));
@@ -369,7 +371,9 @@ function renderPreviewEntry(entry) {
             const derivedId = (p.id || p.name || "").toLowerCase().replace(/ /g, "-");
             return derivedId === page.toLowerCase();
           });
-          if (pageIdx >= 0) setState({ activePageIdx: pageIdx });
+          if (pageIdx >= 0) {
+            setState({ activePageIdx: pageIdx }, anchor || null);
+          }
         });
       }
 
