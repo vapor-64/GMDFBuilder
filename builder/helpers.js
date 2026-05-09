@@ -138,14 +138,19 @@ function _makeSpriteCell(entry, onClick, size) {
   return cell;
 }
 
-function attachSpritePicker(inputEl, wrap) {
-  if (!window.GMDF_SPRITES || !Object.keys(window.GMDF_SPRITES).length) return;
+// Sentinel qualifier used for the emotes tab inside the sprite picker.
+const EMOTE_TAB_KEY = "Emotes";
 
-  const groups     = _getSpriteGroups();
-  const qualifiers = Object.keys(groups).sort();
+function attachSpritePicker(inputEl, wrap) {
+  const hasSprites = window.GMDF_SPRITES && Object.keys(window.GMDF_SPRITES).length > 0;
+  const hasEmotes  = window.GMDF_EMOTES  && Object.keys(window.GMDF_EMOTES).length  > 0;
+  if (!hasSprites && !hasEmotes) return;
+
+  const groups     = _getSpriteGroups();             // qualifier → [{qualifier,id,dataUri}]
+  const qualifiers = Object.keys(groups).sort();     // e.g. ['BC','H','O','T','W']
+  if (hasEmotes) qualifiers.push(EMOTE_TAB_KEY);     // append Emotes tab last
   if (!qualifiers.length) return;
 
-  
   const toolbarBtn = h("button", {
     className:      "sp-toolbar-btn",
     title:          "Insert sprite",
@@ -153,13 +158,11 @@ function attachSpritePicker(inputEl, wrap) {
     type:           "button",
     onClick:   evt => {
       evt.stopPropagation();
-      
+
       document.querySelectorAll(".sp-panel").forEach(el => el.remove());
 
-      const panel = h("div", { className: "sp-panel" });
-
-      
-      const header = h("div", { className: "sp-panel-header" });
+      const panel   = h("div", { className: "sp-panel" });
+      const header  = h("div", { className: "sp-panel-header" });
 
       const searchInp = h("input", {
         className:   "sp-search",
@@ -173,18 +176,18 @@ function attachSpritePicker(inputEl, wrap) {
       header.appendChild(closeBtn);
       panel.appendChild(header);
 
-      
-      const tabBar  = h("div", { className: "sp-tab-bar" });
+      const tabBar   = h("div", { className: "sp-tab-bar" });
       const gridWrap = h("div", { className: "sp-grid-wrap" });
-      let activeQ   = qualifiers[0];
+      let activeQ    = qualifiers[0];
 
       function showTab(q) {
         activeQ = q;
-        
         tabBar.querySelectorAll(".sp-tab").forEach(t =>
           t.classList.toggle("active", t.dataset.q === q)
         );
-        buildGrid(q, searchInp.value.trim());
+        // Hide search bar for Emotes tab — emotes are few enough to scan visually.
+        searchInp.style.display = (q === EMOTE_TAB_KEY) ? "none" : "";
+        buildGrid(q, q === EMOTE_TAB_KEY ? "" : searchInp.value.trim());
       }
 
       qualifiers.forEach(q => {
@@ -195,18 +198,58 @@ function attachSpritePicker(inputEl, wrap) {
       });
       panel.appendChild(tabBar);
 
-      
       const countEl = h("div", { className: "sp-count" });
       panel.appendChild(countEl);
       panel.appendChild(gridWrap);
 
       function buildGrid(q, filter) {
         gridWrap.innerHTML = "";
+
+        // ── Emotes tab ───────────────────────────────────────────────────
+        if (q === EMOTE_TAB_KEY) {
+          const emotes = window.GMDF_EMOTES || {};
+          const names  = Object.keys(emotes);
+          countEl.textContent = `${names.length} emote${names.length !== 1 ? "s" : ""}`;
+          if (!names.length) {
+            gridWrap.appendChild(h("div", { className: "sp-empty" }, "No emotes registered"));
+            return;
+          }
+          const grid = h("div", { className: "sp-grid" });
+          names.forEach(name => {
+            const cell = h("div", { className: "sp-cell", title: `{${name}}` });
+            const img  = document.createElement("img");
+            img.src              = emotes[name];
+            img.className        = "sp-cell-img";
+            img.style.width      = "32px";
+            img.style.height     = "32px";
+            img.style.imageRendering = "pixelated";
+            cell.appendChild(img);
+            cell.appendChild(h("span", { className: "sp-cell-label" }, name));
+            cell.title = `{${name}}`;
+            cell.addEventListener("mousedown", e => {
+              e.preventDefault();
+              const tag   = `{${name}}`;
+              const start = inputEl.selectionStart ?? inputEl.value.length;
+              const end   = inputEl.selectionEnd   ?? inputEl.value.length;
+              inputEl.value = inputEl.value.slice(0, start) + tag + inputEl.value.slice(end);
+              const newPos  = start + tag.length;
+              inputEl.setSelectionRange(newPos, newPos);
+              inputEl.dispatchEvent(new Event("input", { bubbles: true }));
+              inputEl.focus();
+              panel.remove();
+            });
+            grid.appendChild(cell);
+          });
+          gridWrap.appendChild(grid);
+          return;
+        }
+
+        // ── Regular item-sprite tabs ──────────────────────────────────────
         let entries = groups[q] || [];
         if (filter) {
           const f = filter.toLowerCase();
-          entries  = entries.filter(e => e.id.toLowerCase().includes(f) ||
-                                        e.qualifier.toLowerCase().includes(f));
+          entries = entries.filter(e => e.id.toLowerCase().includes(f) ||
+                                       e.qualifier.toLowerCase().includes(f));
         }
         countEl.textContent = `${entries.length} of ${(groups[q]||[]).length} sprites`;
         if (!entries.length) {
@@ -225,7 +268,9 @@ function attachSpritePicker(inputEl, wrap) {
 
       buildGrid(activeQ, "");
 
-      searchInp.addEventListener("input", e => buildGrid(activeQ, e.target.value.trim()));
+      searchInp.addEventListener("input", e => {
+        if (activeQ !== EMOTE_TAB_KEY) buildGrid(activeQ, e.target.value.trim());
+      });
 
       
       setTimeout(() => {
