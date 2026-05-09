@@ -121,7 +121,17 @@ const IMAGE_EXTS = /\.(png|jpe?g|gif|webp|bmp|svg)$/i;
 function addAssetsFromInput(files) {
   for (const file of files) {
     if (!IMAGE_EXTS.test(file.name)) continue;
-    const key = "assets/" + file.name;
+    // Prefer webkitRelativePath so folder uploads keep their subfolder structure
+    // e.g. "portraits/penny.png" instead of just "penny.png".
+    // For regular single-file uploads webkitRelativePath is empty, so we fall
+    // back to "assets/" + the bare filename (legacy behaviour).
+    const relativePath = file.webkitRelativePath
+      ? file.webkitRelativePath          // "portraits/penny.png"
+      : "assets/" + file.name;           // "assets/penny.png"
+    // Normalise to always be under "assets/" exactly once
+    const key = relativePath.startsWith("assets/")
+      ? relativePath
+      : "assets/" + relativePath;
     const existing = assetStore.get(key);
     if (existing) URL.revokeObjectURL(existing.blobUrl);
     assetStore.set(key, { blobUrl: URL.createObjectURL(file), originalName: file.name });

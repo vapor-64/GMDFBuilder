@@ -100,6 +100,17 @@ function render() {
     hdrImageInput.addEventListener("change", e => { addAssetsFromInput(e.target.files); hdrImageInput.value = ""; });
     body.appendChild(hdrImageInput);
 
+    const hdrFolderInput = document.createElement("input");
+    hdrFolderInput.type     = "file";
+    hdrFolderInput.name     = "hdr-folder-upload";
+    hdrFolderInput.multiple = true;
+    hdrFolderInput.setAttribute("webkitdirectory", "");
+    hdrFolderInput.setAttribute("directory", "");
+    hdrFolderInput.style.display = "none";
+    hdrFolderInput.setAttribute("aria-label", "Upload image folder");
+    hdrFolderInput.addEventListener("change", e => { addAssetsFromInput(e.target.files); hdrFolderInput.value = ""; });
+    body.appendChild(hdrFolderInput);
+
     const hdrI18nInput = document.createElement("input");
     hdrI18nInput.type     = "file";
     hdrI18nInput.name     = "hdr-i18n-upload";
@@ -169,6 +180,7 @@ function render() {
       }, `Images (${assetStore.size}) \u25be`);
       mountGroup.appendChild(countBtn);
       mountGroup.appendChild(h("button", { className: "header-tool-btn", title: "Add more images", onClick: () => hdrImageInput.click() }, "+"));
+      mountGroup.appendChild(h("button", { className: "header-tool-btn", title: "Upload an image folder (preserves subfolders)", onClick: () => hdrFolderInput.click() }, "\uD83D\uDCC2"));
       mountGroup.appendChild(h("button", { className: "header-tool-btn danger", title: "Remove all images", onClick: clearAssets }, "\u2715"));
     } else {
       mountGroup.appendChild(h("button", {
@@ -176,6 +188,11 @@ function render() {
         title:     "Upload images for preview (png, jpg, gif, webp\u2026)",
         onClick:   () => hdrImageInput.click()
       }, "Images"));
+      mountGroup.appendChild(h("button", {
+        className: "header-tool-btn",
+        title:     "Upload an image folder (preserves subfolder paths e.g. assets/portraits/penny.png)",
+        onClick:   () => hdrFolderInput.click()
+      }, "\uD83D\uDCC2"));
     }
     toolBar.appendChild(mountGroup);
 
