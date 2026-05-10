@@ -1,4 +1,4 @@
-﻿function deepCloneEntry(entry) {
+function deepCloneEntry(entry) {
   const clone = { ...entry, _id: uid() };
   // Fresh UUID so the clone is independently linkable and doesn't alias the original
   if (clone.type === 'sectionTitle' || clone.type === 'paragraph') {
@@ -306,7 +306,7 @@ function renderEntryCard(entry, idx, total, callbacks) {
 
   
   if (meta?.hasSpoiler) {
-    
+    // Label field
     const lf = h("div", { className: "field" });
     lf.appendChild(h("label", { className: "field-label" }, "Label (header bar text)"));
     const li = h("input", { className: "input", placeholder: "Spoiler" });
@@ -315,14 +315,68 @@ function renderEntryCard(entry, idx, total, callbacks) {
     lf.appendChild(renderI18nPicker(li));
     body.appendChild(lf);
 
-    
-    const cf = h("div", { className: "field" });
-    cf.appendChild(h("label", { className: "field-label" }, "Hidden Content"));
-    const ca = h("textarea", { className: "textarea", placeholder: "Text shown after the spoiler is clicked..." });
-    ca.value = entry.text || "";
-    ca.addEventListener("input", e => silentUpd("text", e.target.value));
-    cf.appendChild(renderI18nPicker(ca));
-    body.appendChild(cf);
+    // Child entries list — same pattern as indentBlock
+    const spoilerItems = entry.entries || [];
+    const spoilerEntriesEl = h("div", { className: "row-col-entries" });
+    spoilerItems.forEach((sub, si) => {
+      const subCallbacks = {
+        onSilentUpd: (field, value) => { entry.entries[si] = { ...entry.entries[si], [field]: value }; },
+        onStructUpd: (field, value) => {
+          const updated = [...entry.entries];
+          updated[si] = { ...updated[si], [field]: value };
+          structUpd("entries", updated);
+        },
+        onDelete: () => {
+          const updated = [...entry.entries];
+          updated.splice(si, 1);
+          structUpd("entries", updated);
+        },
+        onMoveUp: si > 0 ? () => {
+          const updated = [...entry.entries];
+          [updated[si-1], updated[si]] = [updated[si], updated[si-1]];
+          structUpd("entries", updated);
+        } : null,
+        onMoveDown: si < spoilerItems.length - 1 ? () => {
+          const updated = [...entry.entries];
+          [updated[si], updated[si+1]] = [updated[si+1], updated[si]];
+          structUpd("entries", updated);
+        } : null,
+        onDuplicate: () => {
+          const updated = [...entry.entries];
+          updated.splice(si + 1, 0, deepCloneEntry(sub));
+          structUpd("entries", updated);
+        },
+      };
+      spoilerEntriesEl.appendChild(renderEntryCard(sub, si, spoilerItems.length, subCallbacks));
+    });
+    body.appendChild(spoilerEntriesEl);
+
+    // Add child entry picker
+    const spoilerAddWrap = h("div", { style: { position: "relative", marginTop: "6px" } });
+    const spoilerAddBtn  = h("button", { className: "row-add-btn",
+      onClick: evt => {
+        evt.stopPropagation();
+        document.querySelectorAll(".row-type-picker").forEach(el => el.remove());
+        const picker = h("div", { className: "row-type-picker" });
+        ENTRY_TYPES.forEach(t => {
+          const item = h("div", { className: "row-type-picker-item" });
+          item.appendChild(h("span", { className: "palette-icon", style: { background: t.color, width: "16px", height: "16px", fontSize: "10px" } }, t.icon));
+          item.appendChild(document.createTextNode(t.label));
+          item.addEventListener("click", () => {
+            picker.remove();
+            structUpd("entries", [...(entry.entries || []), defaultEntry(t.type)]);
+          });
+          picker.appendChild(item);
+        });
+        setTimeout(() => document.addEventListener("click", function closer() {
+          picker.remove();
+          document.removeEventListener("click", closer);
+        }, { once: true }), 0);
+        spoilerAddWrap.appendChild(picker);
+      }
+    }, "+ Add Child Entry");
+    spoilerAddWrap.appendChild(spoilerAddBtn);
+    body.appendChild(spoilerAddWrap);
   }
   
   if (meta?.hasGif) {

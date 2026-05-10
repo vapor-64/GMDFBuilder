@@ -1,4 +1,4 @@
-﻿const gifAnimManager = (() => {
+const gifAnimManager = (() => {
   const intervals = new Set();
   return {
     add(id)   { intervals.add(id); },
@@ -249,7 +249,6 @@ function renderPreviewEntry(entry) {
     }
 
     case "spoiler": {
-      
       let revealed = false;
 
       const wrap = h("div", { style: { marginBottom: "8px" } });
@@ -262,6 +261,7 @@ function renderPreviewEntry(entry) {
           cursor: "pointer",
           display: "flex",
           alignItems: "center",
+          justifyContent: "space-between",
           gap: "8px",
           userSelect: "none",
         }
@@ -271,24 +271,46 @@ function renderPreviewEntry(entry) {
       lbl.appendChild(renderInlineContent(resolveI18n(entry.label) || "(no label)", 14));
       headerBar.appendChild(lbl);
 
+      const arrow = h("span", { style: { color: "rgba(255,255,255,0.8)", fontSize: "11px", flexShrink: "0" } }, "▼");
+      headerBar.appendChild(arrow);
+
       const contentEl = h("div", {
         style: {
           display: "none",
           background: "rgba(245,230,200,0.6)",
-          padding: "8px 12px",
-          fontFamily: "'SVThin',sans-serif",
-          fontSize: "14px",
-          color: "#3e2f1c",
-          lineHeight: "1.6",
-          whiteSpace: "pre-wrap",
-          wordBreak: "break-word",
+          padding: "8px 12px 4px",
         }
       });
-      contentEl.appendChild(renderInlineContent(resolveI18n(entry.text) || "(no content)", 14));
+
+      // Render child entries. Supports both the new entries[] form and the
+      // legacy text string form so old previews keep working.
+      const children = entry.entries;
+      if (Array.isArray(children) && children.length > 0) {
+        children.forEach(child => contentEl.appendChild(renderPreviewEntry(child)));
+      } else if (entry.text) {
+        // Legacy plain-text fallback
+        const p = h("div", {
+          style: {
+            fontFamily: "'SVThin',sans-serif",
+            fontSize: "14px",
+            color: "#3e2f1c",
+            lineHeight: "1.6",
+            whiteSpace: "pre-wrap",
+            wordBreak: "break-word",
+          }
+        });
+        p.appendChild(renderInlineContent(resolveI18n(entry.text), 14));
+        contentEl.appendChild(p);
+      } else {
+        contentEl.appendChild(h("div", {
+          style: { fontSize: "12px", color: "#999", fontStyle: "italic", padding: "4px 0" }
+        }, "(no content)"));
+      }
 
       headerBar.addEventListener("click", () => {
         revealed = !revealed;
         contentEl.style.display = revealed ? "block" : "none";
+        arrow.textContent = revealed ? "▲" : "▼";
       });
 
       wrap.appendChild(headerBar);

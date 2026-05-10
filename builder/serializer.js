@@ -1,4 +1,4 @@
-﻿function serializeEntry(e) {
+function serializeEntry(e) {
   const r = { type: e.type };
   if (e.text  !== undefined) r.text  = e.text;
   if (e.label !== undefined) r.label = e.label;
@@ -28,6 +28,17 @@
     r.entries = (e.entries || []).map(serializeEntry);
     if (e.indent !== undefined && e.indent !== 32) r.indent = e.indent;
     if (e.showRule === false) r.showRule = false;
+  }
+  if (e.type === "spoiler") {
+    // Always serialize child entries. If the spoiler was created with the old
+    // plain-text form (e.text) and has no entries array, wrap the text in a
+    // paragraph entry so the output is always the new schema.
+    const kids = e.entries && e.entries.length > 0
+      ? e.entries
+      : (e.text?.trim() ? [{ _id: uid(), type: "paragraph", text: e.text }] : []);
+    r.entries = kids.map(serializeEntry);
+    // Never write the legacy "text" field on spoilers.
+    delete r.text;
   }
   if (e.type === "gif") {
     r.frameCount    = e.frameCount    ?? 1;
@@ -109,6 +120,13 @@ function validate() {
       if (e.type === "indentBlock") {
         if (!e.entries?.length)
           iss.push({ level: "warn", msg: `${loc}: Indent block has no child entries.` });
+      }
+      if (e.type === "spoiler") {
+        if (!e.label?.trim())
+          iss.push({ level: "error", msg: `${loc}: Spoiler label is empty.` });
+        const hasContent = (e.entries && e.entries.length > 0) || e.text?.trim();
+        if (!hasContent)
+          iss.push({ level: "warn", msg: `${loc}: Spoiler has no child entries.` });
       }
     });
   });

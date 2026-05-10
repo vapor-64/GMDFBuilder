@@ -1,4 +1,4 @@
-﻿function importEntries(raw) {
+function importEntries(raw) {
   return (raw || []).map(e => {
     const base = { _id: uid(), type: e.type || 'paragraph' };
 
@@ -76,7 +76,16 @@
     }
     if (base.type === 'spoiler') {
       if (base.label === undefined) base.label = '';
-      if (base.text  === undefined) base.text  = '';
+      // Support both the new entries[] form and the legacy text form.
+      // If entries is present, import it recursively; otherwise keep text for
+      // preview fallback (preview.js handles both).
+      if (e.entries && e.entries.length > 0) {
+        base.entries = importEntries(e.entries);
+      } else {
+        base.entries = [];
+        if (e.text !== undefined) base.text = e.text;
+        else if (base.text === undefined) base.text = '';
+      }
     }
     if (base.type === 'link') {
       if (base.text  === undefined) base.text  = '';

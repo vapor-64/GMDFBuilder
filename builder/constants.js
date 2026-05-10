@@ -1,4 +1,4 @@
-﻿const SCALE = 1.2;
+const SCALE = 1.2;
 
 const ENTRY_TYPES = [
   { type:"sectionTitle", label:"Section Title",    icon:"H",   color:"#b14e05", hasAlign:1, hasText:1, hasFontSize:1 },
@@ -108,10 +108,10 @@ const ENTRY_HELP = {
     ]
   },
   spoiler: {
-    summary: "A collapsible block. The header bar is always visible; the content is hidden until the player clicks it.",
+    summary: "A collapsible block. The header bar is always visible; the child entries are hidden until the player clicks it. Supports any entry types as children, including nested spoilers.",
     params: [
-      { name: "Label",          desc: "Text shown in the clickable header bar. Keep it short." },
-      { name: "Hidden content", desc: "The text revealed after clicking. Supports {{i18n:key}} tokens." },
+      { name: "Label",         desc: "Text shown in the clickable header bar. Keep it short. Supports {{i18n:key}} tokens." },
+      { name: "Child entries", desc: "Add any entry types inside the spoiler using the + Add Child Entry button. Spoilers can be nested inside each other." },
     ]
   },
   row: {
@@ -182,7 +182,7 @@ function defaultEntry(type) {
   if (m?.hasAlign)   b.align = type === "caption" ? "center" : "left";
   if (m?.hasImage)   { b.texture = ""; b.scale = 2; b.items = []; }
   if (m?.hasList)    b.items = [""];
-  if (m?.hasSpoiler) { b.label = "Spoiler"; b.text = ""; }
+  if (m?.hasSpoiler) { b.label = "Spoiler"; b.entries = []; }
   if (type === "keyValue") { b.key = ""; b.value = ""; }
   if (type === "divider")  b.style  = "single";
   if (type === "spacer")   b.height = 16;
