@@ -366,19 +366,44 @@ function render() {
     cBody.appendChild(pSet);
 
     const dz = h("div", { className: "drop-zone " + (state.dragType ? "drag-active" : "drag-inactive") });
+
+    // Shared indicator element — moved in the DOM directly, no re-render needed
+    const dropIndicator = h("div", { className: "drop-indicator" });
+    dropIndicator.style.display = "none";
+
+    function updateIndicator(ins) {
+      const cards = dz.querySelectorAll(":scope > .entry-card");
+      dropIndicator.style.display = "";
+      if (ins >= cards.length) {
+        dz.appendChild(dropIndicator);
+      } else {
+        dz.insertBefore(dropIndicator, cards[ins]);
+      }
+    }
+
     dz.addEventListener("dragover", e => {
       e.preventDefault();
-      const ch  = dz.querySelectorAll(".entry-card");
-      let ins   = page.entries.length;
-      for (let i = 0; i < ch.length; i++) {
-        const r = ch[i].getBoundingClientRect();
+      const cards = dz.querySelectorAll(":scope > .entry-card");
+      let ins = cards.length;
+      for (let i = 0; i < cards.length; i++) {
+        const r = cards[i].getBoundingClientRect();
         if (e.clientY < r.top + r.height / 2) { ins = i; break; }
       }
-      if (state.dragOverIdx !== ins) { state.dragOverIdx = ins; render(); }
+      if (state.dragOverIdx !== ins) {
+        state.dragOverIdx = ins;
+        updateIndicator(ins);
+      }
     });
-    dz.addEventListener("dragleave", () => { if (state.dragOverIdx !== null) setState({ dragOverIdx: null }); });
+    dz.addEventListener("dragleave", e => {
+      // Only hide if leaving the drop zone entirely, not moving between children
+      if (!dz.contains(e.relatedTarget)) {
+        state.dragOverIdx = null;
+        dropIndicator.style.display = "none";
+      }
+    });
     dz.addEventListener("drop", e => {
       e.preventDefault();
+      dropIndicator.style.display = "none";
       if (state.dragType) {
         const entries = [...page.entries];
         entries.splice(state.dragOverIdx ?? entries.length, 0, defaultEntry(state.dragType));
@@ -392,11 +417,10 @@ function render() {
       dz.appendChild(h("div", { className: "drop-empty" }, "Drag entries from the palette or click to add them here"));
 
     page.entries.forEach((entry, idx) => {
-      if (state.dragOverIdx === idx && state.dragType) dz.appendChild(h("div", { className: "drop-indicator" }));
       dz.appendChild(renderEntryCard(entry, idx, page.entries.length));
     });
-    if (state.dragOverIdx === page.entries.length && state.dragType)
-      dz.appendChild(h("div", { className: "drop-indicator" }));
+    dz.appendChild(dropIndicator);
+    if (state.dragType && state.dragOverIdx !== null) updateIndicator(state.dragOverIdx);
 
     cBody.appendChild(dz);
     canvas.appendChild(cBody);
@@ -628,7 +652,7 @@ function render() {
       // also reinforces the landing spot when scrolling did happen.
       flashAnchorTarget(target);
     }));
-  } else {
+  } else if (!state.dragType) {
     requestAnimationFrame(() => requestAnimationFrame(() => window.scrollTo({ top: scrollY, behavior: "instant" })));
   }
 }
