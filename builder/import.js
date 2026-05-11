@@ -1,3 +1,137 @@
+// ── Multi-file import (picks JSON files directly, no ZIP needed) ────────────────
+
+/**
+ * Reads an array of File objects (the manifest + per-page JSON files from the
+ * documentation/ folder) and loads them into the editor.
+ *
+ * The manifest is identified by name: "documentation.json".
+ * Page files must be named "documentation.<slug>.json".
+ *
+ * Errors are shown inline in the modal (errBox / ta), and the modal is
+ * closed on success.
+ */
+function applyMultiFileImport(files, errBox, ta, overlay) {
+  const PAGE_PREFIX   = 'documentation.';
+  const MANIFEST_NAME = 'documentation.json';
+
+  // Separate the manifest from page files by filename
+  let manifestFile = null;
+  const pageFiles  = [];
+
+  for (const file of files) {
+    const name = file.name.toLowerCase();
+    if (name === MANIFEST_NAME) {
+      manifestFile = file;
+    } else if (name.startsWith(PAGE_PREFIX) && name.endsWith('.json')) {
+      pageFiles.push(file);
+    }
+  }
+
+  function showErr(msg) {
+    ta.classList.add('error');
+    errBox.textContent = '\u2717 ' + msg;
+    errBox.className   = 'import-error visible';
+  }
+
+  if (!manifestFile) {
+    // If only a single file was chosen and it looks like a regular
+    // documentation.json (not a page file), fall back to single-file import.
+    if (files.length === 1) {
+      const reader = new FileReader();
+      reader.onload = e => {
+        const err = applyImport(e.target.result);
+        if (err) showErr(err);
+        else overlay.remove();
+      };
+      reader.onerror = () => showErr('Could not read the file.');
+      reader.readAsText(files[0]);
+      return;
+    }
+    showErr('No "documentation.json" manifest found among the selected files.');
+    return;
+  }
+
+  // Read all files in parallel using FileReader, then assemble
+  function readText(file) {
+    return new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload  = e => resolve(e.target.result);
+      r.onerror = () => reject(new Error('Could not read ' + file.name));
+      r.readAsText(file);
+    });
+  }
+
+  const allReads = [readText(manifestFile), ...pageFiles.map(readText)];
+
+  Promise.all(allReads).then(texts => {
+    // Parse manifest
+    let manifest;
+    try {
+      manifest = JSON.parse(texts[0]);
+    } catch (err) {
+      showErr('Failed to parse documentation.json: ' + err.message);
+      return;
+    }
+
+    if (!manifest.modName) { showErr('documentation.json is missing "modName".'); return; }
+    if (manifest.format !== 1) { showErr('documentation.json has unsupported format ' + manifest.format + ' (expected 1).'); return; }
+
+    // Parse page files
+    const parsedPages = {}; // slug → page data
+    pageFiles.forEach((file, i) => {
+      const name = file.name;
+      // Derive slug: strip "documentation." prefix and ".json" suffix
+      const slug = name.slice(PAGE_PREFIX.length, -'.json'.length);
+      if (!slug) return;
+      try {
+        parsedPages[slug] = JSON.parse(texts[i + 1]);
+      } catch (err) {
+        console.warn('[GMDF Import] Failed to parse page file "' + name + '": ' + err.message);
+      }
+    });
+
+    if (Object.keys(parsedPages).length === 0) {
+      showErr('No valid page files found. Select the manifest plus the documentation.<slug>.json page files.');
+      return;
+    }
+
+    // Order: pageOrder first, then remaining alphabetically
+    const pageOrder    = Array.isArray(manifest.pageOrder) ? manifest.pageOrder : [];
+    const orderedSlugs = [];
+    for (const slug of pageOrder) {
+      if (parsedPages[slug]) orderedSlugs.push(slug);
+    }
+    const listed   = new Set(orderedSlugs);
+    const unlisted = Object.keys(parsedPages).filter(s => !listed.has(s)).sort();
+    orderedSlugs.push(...unlisted);
+
+    const pages = orderedSlugs.map(slug => {
+      const p = parsedPages[slug];
+      return {
+        _id:         uid(),
+        id:          p.id   || slug,
+        name:        p.name || 'Untitled',
+        headerImage: p.headerImage?.texture || p.headerImage || '',
+        entries:     importEntries(p.entries || []),
+      };
+    });
+
+    clearPersistedState();
+    setState({
+      modName:       manifest.modName || '',
+      pages,
+      activePageIdx: 0,
+      view:          'editor',
+      multiFileMode: true,
+    });
+
+    overlay.remove();
+
+  }).catch(err => {
+    showErr(err.message);
+  });
+}
+
 function importEntries(raw) {
   return (raw || []).map(e => {
     const base = { _id: uid(), type: e.type || 'paragraph' };
@@ -169,7 +303,7 @@ function showImportModal() {
 
   const hint = document.createElement('div');
   hint.style.cssText = 'font-size:12px;font-family:var(--font-mono);color:var(--text-dim);line-height:1.5';
-  hint.innerHTML = 'Paste your <code style="background:var(--bg-parch-3);padding:1px 4px;border-radius:3px">documentation.json</code> below, or load a file. <strong>This will replace the current editor contents.</strong>';
+  hint.innerHTML = 'Paste your <code style="background:var(--bg-parch-3);padding:1px 4px;border-radius:3px">documentation.json</code> below, or load a file. For multi-file docs, use <strong>Load Multi-File</strong> and select the manifest + page files together. <strong>This will replace the current editor contents.</strong>';
 
   const ta = document.createElement('textarea');
   ta.id          = 'import-json-textarea';
@@ -218,6 +352,31 @@ function showImportModal() {
   fileBtn.textContent = '📂 Load File';
   fileBtn.addEventListener('click', () => fileInp.click());
 
+  // ── Multi-file import button (picks documentation/ JSON files directly) ──
+  const multiInp          = document.createElement('input');
+  multiInp.type           = 'file';
+  multiInp.name           = 'import-multi';
+  multiInp.accept         = '.json,application/json';
+  multiInp.multiple       = true;
+  multiInp.setAttribute('aria-label', 'Load multi-file documentation JSON files');
+  multiInp.style.display  = 'none';
+  multiInp.addEventListener('change', e => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+    ta.value = '';
+    errBox.className = 'import-error';
+    ta.classList.remove('error');
+    const err = applyMultiFileImport(files, errBox, ta, overlay);
+    // applyMultiFileImport is async — errors surface via the errBox directly
+    multiInp.value = '';
+  });
+
+  const multiBtn = document.createElement('button');
+  multiBtn.className   = 'import-btn-file';
+  multiBtn.title       = 'Select the documentation/ JSON files (manifest + page files) directly';
+  multiBtn.textContent = '🗂️ Load Multi-File';
+  multiBtn.addEventListener('click', () => multiInp.click());
+
   const goBtn = document.createElement('button');
   goBtn.className   = 'import-btn-go';
   goBtn.textContent = 'Import →';
@@ -240,6 +399,8 @@ function showImportModal() {
   mfoot.appendChild(footHint);
   mfoot.appendChild(fileInp);
   mfoot.appendChild(fileBtn);
+  mfoot.appendChild(multiInp);
+  mfoot.appendChild(multiBtn);
   mfoot.appendChild(goBtn);
 
   modal.appendChild(mhdr);

@@ -51,6 +51,7 @@ let state = _persisted
       dragOverIdx:       null,
       copyLabel:         "Copy JSON",
       sampleVariantKey:  "no-images-no-i18n",
+      multiFileMode:     false,
     }
   : {
       modName:           "",
@@ -62,6 +63,7 @@ let state = _persisted
       copyLabel:         "Copy JSON",
       activeI18nKey:     null,
       sampleVariantKey:  "no-images-no-i18n",
+      multiFileMode:     false,
     };
 
 function pg() {

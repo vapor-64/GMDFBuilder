@@ -492,32 +492,97 @@ function render() {
   // ── JSON view ─────────────────────────────────────────────────────────────
   if (state.view === "json") {
     const panel   = h("div", { className: "json-panel" });
-    const jsonStr = generateJson();
+    const isMulti = !!state.multiFileMode;
+
     const toolbar = h("div", { className: "json-toolbar" });
-    toolbar.appendChild(h("button", {
-      className: "copy-btn" + (state.copyLabel === "Copied!" ? " copied" : ""),
-      title:     "Copy to clipboard",
-      onClick:   () => {
-        navigator.clipboard?.writeText(jsonStr);
-        setState({ copyLabel: "Copied!" });
-        setTimeout(() => setState({ copyLabel: "Copy JSON" }), 2000);
+
+    // Mode toggle
+    const modeGroup = h("div", { className: "json-mode-toggle", title: "Single file: one documentation.json. Multi-file: documentation/ folder with one file per page." });
+    const singleBtn = h("button", {
+      className: "json-mode-btn" + (!isMulti ? " active" : ""),
+      onClick:   () => setState({ multiFileMode: false, copyLabel: "Copy JSON" })
+    }, "Single File");
+    const multiBtn = h("button", {
+      className: "json-mode-btn" + (isMulti ? " active" : ""),
+      onClick:   () => setState({ multiFileMode: true, copyLabel: "Copy JSON" })
+    }, "Multi-File");
+    modeGroup.appendChild(singleBtn);
+    modeGroup.appendChild(multiBtn);
+    toolbar.appendChild(modeGroup);
+    toolbar.appendChild(h("div", { className: "header-divider" }));
+
+    if (!isMulti) {
+      const jsonStr = generateJson();
+      toolbar.appendChild(h("button", {
+        className: "copy-btn" + (state.copyLabel === "Copied!" ? " copied" : ""),
+        title:     "Copy to clipboard",
+        onClick:   () => {
+          navigator.clipboard?.writeText(jsonStr);
+          setState({ copyLabel: "Copied!" });
+          setTimeout(() => setState({ copyLabel: "Copy JSON" }), 2000);
+        }
+      }, state.copyLabel));
+      toolbar.appendChild(h("button", {
+        className: "copy-btn",
+        title:     "Download as documentation.json",
+        onClick:   () => {
+          const blob = new Blob([jsonStr], { type: "application/json" });
+          const url  = URL.createObjectURL(blob);
+          const a    = document.createElement("a");
+          a.href     = url;
+          a.download = "documentation.json";
+          a.click();
+          URL.revokeObjectURL(url);
+        }
+      }, "\u2193 Download"));
+      panel.appendChild(toolbar);
+      panel.appendChild(h("pre", {}, jsonStr));
+
+    } else {
+      toolbar.appendChild(h("button", {
+        className: "copy-btn",
+        title:     "Download each file individually — place them all into your mod's documentation/ folder",
+        onClick:   () => downloadMultiFileZip()
+      }, "\u2193 Download Files"));
+      panel.appendChild(toolbar);
+
+      const banner = h("div", { className: "json-multi-banner" });
+      banner.innerHTML =
+        '<strong>\uD83D\uDDC2\uFE0F Multi-file mode</strong> \u2014 ' +
+        'Each file downloads individually. Place them all into a <code>documentation/</code> folder inside your mod\u2019s root directory. ' +
+        'The loader picks this up automatically when the folder exists.';
+      panel.appendChild(banner);
+
+      const files    = generateMultiFileOutput();
+      const fileList = h("div", { className: "json-file-list" });
+
+      for (const [path, content] of Object.entries(files)) {
+        const fileWrap   = h("div", { className: "json-file-item" });
+        const fileHeader = h("div", { className: "json-file-header" });
+        const badge = path === "documentation/documentation.json"
+          ? h("span", { className: "json-file-badge manifest" }, "manifest")
+          : h("span", { className: "json-file-badge page" }, "page");
+        fileHeader.appendChild(h("span", { className: "json-file-name" }, path));
+        fileHeader.appendChild(badge);
+        fileHeader.appendChild(h("button", {
+          className: "json-file-copy-btn",
+          title:     "Copy this file\u2019s JSON",
+          onClick:   (e) => {
+            navigator.clipboard?.writeText(content);
+            const btn = e.currentTarget;
+            btn.textContent = "Copied!";
+            btn.classList.add("copied");
+            setTimeout(() => { btn.textContent = "Copy"; btn.classList.remove("copied"); }, 2000);
+          }
+        }, "Copy"));
+        fileWrap.appendChild(fileHeader);
+        fileWrap.appendChild(h("pre", { className: "json-file-pre" }, content));
+        fileList.appendChild(fileWrap);
       }
-    }, state.copyLabel));
-    toolbar.appendChild(h("button", {
-      className: "copy-btn",
-      title:     "Download as documentation.json",
-      onClick:   () => {
-        const blob = new Blob([jsonStr], { type: "application/json" });
-        const url  = URL.createObjectURL(blob);
-        const a    = document.createElement("a");
-        a.href     = url;
-        a.download = "documentation.json";
-        a.click();
-        URL.revokeObjectURL(url);
-      }
-    }, "\u2193 Download"));
-    panel.appendChild(toolbar);
-    panel.appendChild(h("pre", {}, jsonStr));
+
+      panel.appendChild(fileList);
+    }
+
     body.appendChild(panel);
   }
 

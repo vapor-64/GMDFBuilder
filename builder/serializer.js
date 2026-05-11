@@ -70,6 +70,82 @@ function generateJson() {
   }, null, 2);
 }
 
+// ── Multi-file output ─────────────────────────────────────────────────────────
+
+/**
+ * Derives the page file slug from a page object.
+ * Uses the explicit id field if set, otherwise slugifies the page name.
+ */
+function pageSlug(p) {
+  if (p.id?.trim()) return p.id.trim().toLowerCase().replace(/\s+/g, "-");
+  return (p.name || "page").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "page";
+}
+
+/**
+ * Returns an object mapping filename → JSON string for the documentation/ folder.
+ * Files:
+ *   documentation/documentation.json          — manifest
+ *   documentation/documentation.<slug>.json   — one per page
+ */
+function generateMultiFileOutput() {
+  const files = {};
+
+  // Compute slugs, deduplicating if two pages would collide.
+  const usedSlugs = new Map(); // slug → count
+  const slugs = state.pages.map(p => {
+    let base = pageSlug(p);
+    const n  = (usedSlugs.get(base) || 0) + 1;
+    usedSlugs.set(base, n);
+    return n === 1 ? base : `${base}-${n}`;
+  });
+
+  // Manifest — modName, format, and pageOrder.
+  const manifest = {
+    $schema: "https://raw.githubusercontent.com/vapor64/GMDF/master/documentation.schema.json",
+    format:  1,
+    modName: state.modName || "My Mod",
+    pageOrder: slugs,
+  };
+  files["documentation/documentation.json"] = JSON.stringify(manifest, null, 2);
+
+  // Per-page files.
+  state.pages.forEach((p, i) => {
+    const slug = slugs[i];
+    const pageObj = {
+      id:      slug,
+      name:    p.name || "Untitled",
+    };
+    if (p.headerImage?.trim()) pageObj.headerImage = { texture: p.headerImage };
+    pageObj.entries = p.entries.map(e => serializeEntry(e));
+    files[`documentation/documentation.${slug}.json`] = JSON.stringify(pageObj, null, 2);
+  });
+
+  return files;
+}
+
+/**
+ * Triggers individual file downloads for each file in the multi-file layout.
+ * Files are downloaded one at a time with a short delay so browsers don't
+ * block them as a popup storm.
+ */
+function downloadMultiFileZip() {
+  const files = generateMultiFileOutput();
+  const entries = Object.entries(files);
+  entries.forEach(([path, content], i) => {
+    setTimeout(() => {
+      const blob = new Blob([content], { type: 'application/json' });
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      // Use only the bare filename so the browser saves it flat;
+      // the user places the files into the documentation/ folder themselves.
+      a.download = path.split('/').pop();
+      a.href     = url;
+      a.click();
+      URL.revokeObjectURL(url);
+    }, i * 120);
+  });
+}
+
 function validate() {
   const iss = [];
   if (!state.modName?.trim())
