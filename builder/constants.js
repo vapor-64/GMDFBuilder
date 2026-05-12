@@ -32,7 +32,9 @@ const DEFAULT_FONT_SIZES = {
   keyValue:     16,
 };
 
-const uid = () => Math.random().toString(36).slice(2, 10);
+const uid = () => crypto.randomUUID();
+
+const ENTRY_TYPE_MAP = new Map(ENTRY_TYPES.map(t => [t.type, t]));
 
 // ── Per-entry help content ────────────────────────────────────────────────────
 const ENTRY_HELP = {

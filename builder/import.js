@@ -134,109 +134,35 @@ function applyMultiFileImport(files, errBox, ta, overlay) {
 
 function importEntries(raw) {
   return (raw || []).map(e => {
-    const base = { _id: uid(), type: e.type || 'paragraph' };
+    // Start from canonical defaults so any missing field is always populated
+    const base = defaultEntry(e.type || 'paragraph');
 
-    
-    if (e.text      !== undefined) base.text      = e.text;
-    if (e.align     !== undefined) base.align     = e.align;
-    if (e.fontSize  !== undefined) base.fontSize  = e.fontSize;
-
-    
-    if (e.texture   !== undefined) base.texture   = e.texture;
-    if (e.scale     !== undefined) base.scale     = e.scale;
-    if (e.items     !== undefined) base.items     = e.items;
-
-    
-    if (e.key       !== undefined) base.key       = e.key;
-    if (e.value     !== undefined) base.value     = e.value;
-
-    
-    if (e.style     !== undefined) base.style     = e.style;
-
-    
-    if (e.height    !== undefined) base.height    = e.height;
-
-    
-    if (e.frameCount    !== undefined) base.frameCount    = e.frameCount;
-    if (e.frameDuration !== undefined) base.frameDuration = e.frameDuration;
-    if (e.columns       !== undefined) base.columns       = e.columns;
-    if (e.rows          !== undefined) base.rows          = e.rows;
-
-    
-    if (e.label     !== undefined) base.label     = e.label;
-    
-    
-    if (e.url       !== undefined) base.url       = e.url;
-    
-    // anchor — used on sectionTitle/paragraph as jump targets, and on internalLink as destination
-    if (e.anchor    !== undefined) base.anchor    = e.anchor;
-    if (e.mod       !== undefined) base.mod       = e.mod;
-    if (e.page      !== undefined) base.page      = e.page;
-
-    
-    if (e.type === 'row') {
-      base.left         = importEntries(e.left);
-      base.right        = importEntries(e.right);
-      base.leftFraction = e.leftFraction !== undefined ? e.leftFraction : 0.5;
+    // Overlay every field the JSON provides (except type/_id which defaultEntry already set)
+    const skip = new Set(['type', '_id', 'anchor']);
+    for (const key of Object.keys(e)) {
+      if (!skip.has(key)) base[key] = e[key];
     }
 
-    
-    if (e.type === 'indentBlock') {
-      base.entries  = importEntries(e.entries);
-      base.indent   = e.indent   !== undefined ? e.indent   : 32;
-      base.showRule = e.showRule !== undefined ? e.showRule : true;
+    // anchor — sectionTitle/paragraph: keep imported anchor, or the one defaultEntry generated
+    if ((base.type === 'sectionTitle' || base.type === 'paragraph') && e.anchor?.trim()) {
+      base.anchor = e.anchor.trim();
+    }
+    // internalLink anchor destination field
+    if (base.type === 'internalLink' && e.anchor !== undefined) {
+      base.anchor = e.anchor;
     }
 
-    
-    const meta = ENTRY_TYPES.find(t => t.type === base.type);
-    if (meta?.hasText  && base.text    === undefined) base.text    = '';
-    if (meta?.hasAlign && base.align   === undefined) base.align   = base.type === 'caption' ? 'center' : 'left';
-    if (meta?.hasImage && base.texture === undefined) { base.texture = ''; base.scale = 2; }
-    if (meta?.hasImage && base.items   === undefined) base.items   = [];
-    if (meta?.hasList  && base.items   === undefined) base.items   = [''];
-    if (base.type === 'keyValue') {
-      if (base.key   === undefined) base.key   = '';
-      if (base.value === undefined) base.value = '';
+    // Recurse children
+    if (base.type === 'row') {
+      base.left  = importEntries(e.left  || []);
+      base.right = importEntries(e.right || []);
     }
-    if (base.type === 'divider' && base.style  === undefined) base.style  = 'single';
-    if (base.type === 'spacer'  && base.height === undefined) base.height = 16;
-    if (base.type === 'gif') {
-      if (base.frameCount    === undefined) base.frameCount    = 1;
-      if (base.frameDuration === undefined) base.frameDuration = 0.1;
-      if (base.scale         === undefined) base.scale         = 1;
-      if (base.columns       === undefined) base.columns       = 0;
-      if (base.rows          === undefined) base.rows          = 1;
-      if (base.align         === undefined) base.align         = 'left';
+    if (base.type === 'indentBlock' || base.type === 'spoiler') {
+      base.entries = importEntries(e.entries || []);
     }
-    if (base.type === 'spoiler') {
-      if (base.label === undefined) base.label = '';
-      // Support both the new entries[] form and the legacy text form.
-      // If entries is present, import it recursively; otherwise keep text for
-      // preview fallback (preview.js handles both).
-      if (e.entries && e.entries.length > 0) {
-        base.entries = importEntries(e.entries);
-      } else {
-        base.entries = [];
-        if (e.text !== undefined) base.text = e.text;
-        else if (base.text === undefined) base.text = '';
-      }
-    }
-    if (base.type === 'link') {
-      if (base.text  === undefined) base.text  = '';
-      if (base.url   === undefined) base.url   = '';
-      if (base.align === undefined) base.align = 'left';
-    }
-    if (base.type === 'internalLink') {
-      if (base.text   === undefined) base.text   = '';
-      if (base.mod    === undefined) base.mod    = '';
-      if (base.page   === undefined) base.page   = '';
-      if (base.anchor === undefined) base.anchor = '';
-      if (base.align  === undefined) base.align  = 'left';
-    }
-    // Ensure anchorable entries always have a UUID anchor, even when importing
-    // older JSON files or hand-written files that predate this feature.
-    if (base.type === 'sectionTitle' || base.type === 'paragraph') {
-      if (!base.anchor) base.anchor = slugifyAnchor();
+    // Legacy spoiler plain-text fallback
+    if (base.type === 'spoiler' && (!e.entries || !e.entries.length) && e.text) {
+      base.text = e.text;
     }
 
     return base;
@@ -366,7 +292,7 @@ function showImportModal() {
     ta.value = '';
     errBox.className = 'import-error';
     ta.classList.remove('error');
-    const err = applyMultiFileImport(files, errBox, ta, overlay);
+    applyMultiFileImport(files, errBox, ta, overlay);
     // applyMultiFileImport is async — errors surface via the errBox directly
     multiInp.value = '';
   });
@@ -410,6 +336,10 @@ function showImportModal() {
 
   
   overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+  function onOverlayKey(e) {
+    if (e.key === 'Escape') { overlay.remove(); document.removeEventListener('keydown', onOverlayKey); }
+  }
+  document.addEventListener('keydown', onOverlayKey);
 
   document.body.appendChild(overlay);
   requestAnimationFrame(() => ta.focus());

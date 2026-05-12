@@ -151,59 +151,79 @@ function validate() {
   if (!state.modName?.trim())
     iss.push({ level: "error", msg: "Mod name is required." });
 
+  function validateEntry(e, loc) {
+    if (["sectionTitle", "paragraph", "caption"].includes(e.type) && !e.text?.trim())
+      iss.push({ level: "error", msg: `${loc}: Text is empty.` });
+    if (e.type === "image" && !e.texture?.trim())
+      iss.push({ level: "error", msg: `${loc}: Texture path is empty.` });
+    if (e.type === "gif") {
+      if (!e.texture?.trim())
+        iss.push({ level: "error", msg: `${loc}: Sprite sheet path is empty.` });
+      if (!e.frameCount || e.frameCount < 1)
+        iss.push({ level: "error", msg: `${loc}: frameCount must be at least 1.` });
+      if (e.columns > 0 && e.rows > 0 && e.columns * e.rows < e.frameCount)
+        iss.push({ level: "warn", msg: `${loc}: columns × rows (${e.columns * e.rows}) is less than frameCount (${e.frameCount}) — some frames will be unreachable.` });
+    }
+    if (["list", "orderedList"].includes(e.type)) {
+      if (!e.items?.length)
+        iss.push({ level: "error", msg: `${loc}: No items.` });
+      else
+        e.items.forEach((it, ii) => {
+          if (!it?.trim()) iss.push({ level: "warn", msg: `${loc}, item ${ii + 1}: Empty.` });
+        });
+    }
+    if (e.type === "keyValue") {
+      if (!e.key?.trim())   iss.push({ level: "error", msg: `${loc}: Key is empty.` });
+      if (!e.value?.trim()) iss.push({ level: "warn",  msg: `${loc}: Value is empty.` });
+    }
+    if (e.type === "link") {
+      if (!e.text?.trim()) iss.push({ level: "error", msg: `${loc}: Label is empty.` });
+      if (!e.url?.trim())  iss.push({ level: "error", msg: `${loc}: URL is empty.` });
+      else if (!/^https?:\/\//i.test(e.url))
+        iss.push({ level: "warn", msg: `${loc}: URL scheme is not https:// or http:// \u2014 link will be blocked in-game.` });
+    }
+    if (e.type === "internalLink") {
+      if (!e.text?.trim()) iss.push({ level: "error", msg: `${loc}: Label is empty.` });
+      const hasTarget = e.mod?.trim() || e.page?.trim() || e.anchor?.trim();
+      if (!hasTarget)
+        iss.push({ level: "error", msg: `${loc}: Must specify at least one of: mod, page, anchor.` });
+    }
+    if (e.type === "indentBlock") {
+      if (!e.entries?.length)
+        iss.push({ level: "warn", msg: `${loc}: Indent block has no child entries.` });
+      else
+        e.entries.forEach((child, ci) => validateEntry(child, `${loc} > child ${ci + 1} (${child.type})`));
+    }
+    if (e.type === "spoiler") {
+      if (!e.label?.trim())
+        iss.push({ level: "error", msg: `${loc}: Spoiler label is empty.` });
+      const hasContent = (e.entries && e.entries.length > 0) || e.text?.trim();
+      if (!hasContent)
+        iss.push({ level: "warn", msg: `${loc}: Spoiler has no child entries.` });
+      else if (e.entries?.length)
+        e.entries.forEach((child, ci) => validateEntry(child, `${loc} > child ${ci + 1} (${child.type})`));
+    }
+    if (e.type === "row") {
+      const leftEmpty  = !e.left?.length;
+      const rightEmpty = !e.right?.length;
+      if (leftEmpty && rightEmpty)
+        iss.push({ level: "warn", msg: `${loc}: Row has no entries in either column.` });
+      else if (leftEmpty)
+        iss.push({ level: "warn", msg: `${loc}: Row left column is empty.` });
+      else if (rightEmpty)
+        iss.push({ level: "warn", msg: `${loc}: Row right column is empty.` });
+      (e.left  || []).forEach((child, ci) => validateEntry(child, `${loc} > left ${ci + 1} (${child.type})`));
+      (e.right || []).forEach((child, ci) => validateEntry(child, `${loc} > right ${ci + 1} (${child.type})`));
+    }
+  }
+
   state.pages.forEach((p, pi) => {
     if (!p.name?.trim())
       iss.push({ level: "error", msg: `Page ${pi + 1}: Name is empty.` });
 
     p.entries.forEach((e, ei) => {
       const loc = `Page "${p.name || '?'}", entry ${ei + 1} (${e.type})`;
-      if (["sectionTitle", "paragraph", "caption"].includes(e.type) && !e.text?.trim())
-        iss.push({ level: "error", msg: `${loc}: Text is empty.` });
-      if (e.type === "image" && !e.texture?.trim())
-        iss.push({ level: "error", msg: `${loc}: Texture path is empty.` });
-      if (e.type === "gif") {
-        if (!e.texture?.trim())
-          iss.push({ level: "error", msg: `${loc}: Sprite sheet path is empty.` });
-        if (!e.frameCount || e.frameCount < 1)
-          iss.push({ level: "error", msg: `${loc}: frameCount must be at least 1.` });
-        if (e.columns > 0 && e.rows > 0 && e.columns * e.rows < e.frameCount)
-          iss.push({ level: "warn", msg: `${loc}: columns × rows (${e.columns * e.rows}) is less than frameCount (${e.frameCount}) — some frames will be unreachable.` });
-      }
-      if (["list", "orderedList"].includes(e.type)) {
-        if (!e.items?.length)
-          iss.push({ level: "error", msg: `${loc}: No items.` });
-        else
-          e.items.forEach((it, ii) => {
-            if (!it?.trim()) iss.push({ level: "warn", msg: `${loc}, item ${ii + 1}: Empty.` });
-          });
-      }
-      if (e.type === "keyValue") {
-        if (!e.key?.trim())   iss.push({ level: "error", msg: `${loc}: Key is empty.` });
-        if (!e.value?.trim()) iss.push({ level: "warn",  msg: `${loc}: Value is empty.` });
-      }
-      if (e.type === "link") {
-        if (!e.text?.trim()) iss.push({ level: "error", msg: `${loc}: Label is empty.` });
-        if (!e.url?.trim())  iss.push({ level: "error", msg: `${loc}: URL is empty.` });
-        else if (!/^https?:\/\//i.test(e.url))
-          iss.push({ level: "warn", msg: `${loc}: URL scheme is not https:// or http:// \u2014 link will be blocked in-game.` });
-      }
-      if (e.type === "internalLink") {
-        if (!e.text?.trim()) iss.push({ level: "error", msg: `${loc}: Label is empty.` });
-        const hasTarget = e.mod?.trim() || e.page?.trim() || e.anchor?.trim();
-        if (!hasTarget)
-          iss.push({ level: "error", msg: `${loc}: Must specify at least one of: mod, page, anchor.` });
-      }
-      if (e.type === "indentBlock") {
-        if (!e.entries?.length)
-          iss.push({ level: "warn", msg: `${loc}: Indent block has no child entries.` });
-      }
-      if (e.type === "spoiler") {
-        if (!e.label?.trim())
-          iss.push({ level: "error", msg: `${loc}: Spoiler label is empty.` });
-        const hasContent = (e.entries && e.entries.length > 0) || e.text?.trim();
-        if (!hasContent)
-          iss.push({ level: "warn", msg: `${loc}: Spoiler has no child entries.` });
-      }
+      validateEntry(e, loc);
     });
   });
 

@@ -345,7 +345,14 @@ function render() {
     const pgNInp = h("input", { className: "input", placeholder: "Page tab label" });
     pgNInp.value = page.name || "";
     pgNInp.addEventListener("input", e => silentPageUpdate(state.activePageIdx, { name: e.target.value }));
-    pgNInp.addEventListener("blur",  () => render());
+    pgNInp.addEventListener("blur", () => {
+      // Only re-render to update the tab label — no full structural re-render needed
+      const activeTab = document.querySelector(".page-tab.active");
+      if (activeTab) {
+        const textNode = Array.from(activeTab.childNodes).find(n => n.nodeType === Node.TEXT_NODE);
+        if (textNode) textNode.textContent = pg().name || "Untitled";
+      }
+    });
     pgNF.appendChild(pgNInp); pSet.appendChild(pgNF);
 
     const pgIdF = h("div", { className: "field", style: { flex: "1" } });
@@ -353,7 +360,7 @@ function render() {
     const pgIdInp = h("input", { className: "input", placeholder: "e.g. crafting  (auto-derived from name if blank)" });
     pgIdInp.value = page.id || "";
     pgIdInp.addEventListener("input", e => silentPageUpdate(state.activePageIdx, { id: e.target.value }));
-    pgIdInp.addEventListener("blur",  () => render());
+    pgIdInp.addEventListener("blur",  () => { /* id change affects internalLink hints: trigger re-render */ render(); });
     pgIdF.appendChild(pgIdInp); pSet.appendChild(pgIdF);
 
     const hdrIF = h("div", { className: "field", style: { flex: "2" } });
@@ -365,9 +372,9 @@ function render() {
 
     cBody.appendChild(pSet);
 
-    const dz = h("div", { className: "drop-zone " + (state.dragType ? "drag-active" : "drag-inactive") });
+    const dz = h("div", { className: "drop-zone " + (state.dragType || state.dragSrcIdx !== null ? "drag-active" : "drag-inactive") });
 
-    // Shared indicator element — moved in the DOM directly, no re-render needed
+    // NEW PALETTE INDICATOR — moved in the DOM directly, no re-render needed
     const dropIndicator = h("div", { className: "drop-indicator" });
     dropIndicator.style.display = "none";
 
@@ -383,11 +390,22 @@ function render() {
 
     dz.addEventListener("dragover", e => {
       e.preventDefault();
+      // Only handle drags we own (palette drop or card reorder)
+      if (!state.dragType && state.dragSrcIdx === null) return;
       const cards = dz.querySelectorAll(":scope > .entry-card");
       let ins = cards.length;
       for (let i = 0; i < cards.length; i++) {
         const r = cards[i].getBoundingClientRect();
         if (e.clientY < r.top + r.height / 2) { ins = i; break; }
+      }
+      // When reordering, skip the indicator slot that would leave the entry in place
+      // (inserting at src or src+1 is a no-op move)
+      if (state.dragSrcIdx !== null) {
+        if (ins === state.dragSrcIdx || ins === state.dragSrcIdx + 1) {
+          state.dragOverIdx = ins;
+          dropIndicator.style.display = "none";
+          return;
+        }
       }
       if (state.dragOverIdx !== ins) {
         state.dragOverIdx = ins;
@@ -405,11 +423,29 @@ function render() {
       e.preventDefault();
       dropIndicator.style.display = "none";
       if (state.dragType) {
+        // Palette drop: insert a brand-new entry
         const entries = [...page.entries];
         entries.splice(state.dragOverIdx ?? entries.length, 0, defaultEntry(state.dragType));
         state.dragType    = null;
         state.dragOverIdx = null;
         setEntries(entries);
+      } else if (state.dragSrcIdx !== null && state.dragOverIdx !== null) {
+        // Card reorder: remove from old position, insert at new position
+        const src = state.dragSrcIdx;
+        let   ins = state.dragOverIdx;
+        // Adjust insertion index for the removal of the source element
+        if (ins > src) ins--;
+        if (ins !== src) {
+          const entries = [...page.entries];
+          const [moved] = entries.splice(src, 1);
+          entries.splice(ins, 0, moved);
+          state.dragSrcIdx  = null;
+          state.dragOverIdx = null;
+          setEntries(entries);
+        } else {
+          state.dragSrcIdx  = null;
+          state.dragOverIdx = null;
+        }
       }
     });
 
@@ -417,10 +453,18 @@ function render() {
       dz.appendChild(h("div", { className: "drop-empty" }, "Drag entries from the palette or click to add them here"));
 
     page.entries.forEach((entry, idx) => {
-      dz.appendChild(renderEntryCard(entry, idx, page.entries.length));
+      const card = renderEntryCard(entry, idx, page.entries.length);
+      // Visually dim the card that is currently being dragged
+      if (state.dragSrcIdx === idx) card.classList.add("entry-card-dragging");
+      dz.appendChild(card);
     });
     dz.appendChild(dropIndicator);
-    if (state.dragType && state.dragOverIdx !== null) updateIndicator(state.dragOverIdx);
+    if ((state.dragType || state.dragSrcIdx !== null) && state.dragOverIdx !== null) {
+      // Don’t show the indicator at a no-op reorder position
+      const isNoop = state.dragSrcIdx !== null &&
+        (state.dragOverIdx === state.dragSrcIdx || state.dragOverIdx === state.dragSrcIdx + 1);
+      if (!isNoop) updateIndicator(state.dragOverIdx);
+    }
 
     cBody.appendChild(dz);
     canvas.appendChild(cBody);

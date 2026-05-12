@@ -1,8 +1,9 @@
 const gifAnimManager = (() => {
   const intervals = new Set();
   return {
-    add(id)   { intervals.add(id); },
-    clear()   { intervals.forEach(id => clearInterval(id)); intervals.clear(); },
+    add(id)    { intervals.add(id); },
+    delete(id) { intervals.delete(id); },
+    clear()    { intervals.forEach(id => clearInterval(id)); intervals.clear(); },
   };
 })();
 
@@ -13,13 +14,17 @@ function renderDivider(style) {
     const c = document.createElement("canvas");
     c.style.cssText = "width:100%;height:10px;display:block;margin:6px 0 8px";
     c.height = 10;
-    requestAnimationFrame(() => {
-      c.width = c.offsetWidth || 600;
+    function drawDots() {
+      const w = c.offsetWidth;
+      if (!w) return;
+      c.width = w;
       const ctx = c.getContext("2d");
       ctx.fillStyle = "rgba(180,140,80,0.45)";
       let dx = 0;
-      while (dx + 3 <= c.width) { ctx.fillRect(dx, 3, 3, 3); dx += 9; }
-    });
+      while (dx + 3 <= w) { ctx.fillRect(dx, 3, 3, 3); dx += 9; }
+    }
+    const ro = new ResizeObserver(() => drawDots());
+    requestAnimationFrame(() => { ro.observe(c); drawDots(); });
     return c;
   }
 
@@ -196,7 +201,7 @@ function renderPreviewEntry(entry) {
             
             if (!canvas.isConnected) {
               clearInterval(id);
-              gifAnimManager.add(id); 
+              gifAnimManager.delete(id);
               return;
             }
             frameIdx = (frameIdx + 1) % frameCount;
@@ -268,7 +273,7 @@ function renderPreviewEntry(entry) {
       });
 
       const lbl = h("span", { style: { color: "#fff", fontFamily: "'SVThin',sans-serif", fontSize: "14px" } });
-      lbl.appendChild(renderInlineContent(resolveI18n(entry.label) || "(no label)", 14));
+      lbl.appendChild(renderInlineContent(entry.label || "(no label)", 14));
       headerBar.appendChild(lbl);
 
       const arrow = h("span", { style: { color: "rgba(255,255,255,0.8)", fontSize: "11px", flexShrink: "0" } }, "▼");
@@ -319,7 +324,7 @@ function renderPreviewEntry(entry) {
     }
 
     case "link": {
-      const label   = resolveI18n(entry.text) || "(no label)";
+      const label   = entry.text || "(no label)";
       const url     = entry.url  || "";
       const align   = entry.align || "left";
       const isSafe  = /^https?:\/\//i.test(url);
@@ -353,7 +358,7 @@ function renderPreviewEntry(entry) {
     }
 
     case "internalLink": {
-      const label  = resolveI18n(entry.text) || "(no label)";
+      const label  = entry.text || "(no label)";
       const align  = entry.align || "left";
       const mod    = (entry.mod    || "").trim();
       const page   = (entry.page   || "").trim();

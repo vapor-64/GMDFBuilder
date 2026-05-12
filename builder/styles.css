@@ -465,6 +465,23 @@ input, textarea, select, button { font-family: inherit; }
 .mini-btn.collapse-btn:hover { background: var(--md-s4); color: var(--md-text); }
 .mini-btn.collapse-btn.collapsed { color: var(--md-pri); }
 
+.mini-btn.drag-handle {
+  cursor: grab;
+  color: var(--md-text-dim);
+  font-size: 13px;
+  letter-spacing: -1px;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.mini-btn.drag-handle:hover { background: var(--md-s4); color: var(--md-text); }
+.mini-btn.drag-handle:active { cursor: grabbing; background: var(--md-s4); }
+
+.entry-card-dragging {
+  opacity: 0.38;
+  outline: 2px dashed var(--md-pri-dim);
+  outline-offset: -2px;
+}
+
 .entry-card-collapsed { padding-bottom: 3px; }
 
 .entry-body { padding-top: 2px; }

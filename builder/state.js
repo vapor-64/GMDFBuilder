@@ -70,6 +70,28 @@ function pg() {
   return state.pages[state.activePageIdx] || state.pages[0];
 }
 
+// Transient drag state — kept outside state so it's never persisted
+let _dragType    = null;
+let _dragOverIdx = null;
+let _dragSrcIdx  = null;   // index of the card being reordered (null = palette drag)
+
+// Proxy getters/setters so the rest of the code keeps reading state.*
+Object.defineProperty(state, 'dragType', {
+  get() { return _dragType; },
+  set(v) { _dragType = v; },
+  enumerable: false, configurable: true,
+});
+Object.defineProperty(state, 'dragOverIdx', {
+  get() { return _dragOverIdx; },
+  set(v) { _dragOverIdx = v; },
+  enumerable: false, configurable: true,
+});
+Object.defineProperty(state, 'dragSrcIdx', {
+  get() { return _dragSrcIdx; },
+  set(v) { _dragSrcIdx = v; },
+  enumerable: false, configurable: true,
+});
+
 let _pendingAnchor = null;
 
 function setState(patch, anchorSelector) {
@@ -85,9 +107,12 @@ function silentPageUpdate(idx, patch) {
 }
 
 function silentEntryUpdate(entryIdx, field, value) {
-  const page = pg();
-  page.entries = page.entries.map((e, i) => i === entryIdx ? { ...e, [field]: value } : e);
-  debouncedSave();  
+  const pages = state.pages.map((p, pi) => {
+    if (pi !== state.activePageIdx) return p;
+    return { ...p, entries: p.entries.map((e, i) => i === entryIdx ? { ...e, [field]: value } : e) };
+  });
+  state.pages = pages;
+  debouncedSave();
 }
 
 function structuralPageUpdate(idx, patch) {
