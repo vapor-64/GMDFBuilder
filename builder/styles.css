@@ -122,6 +122,7 @@ input, textarea, select, button { font-family: inherit; }
 .header-tool-btn.active { background: var(--md-s3); color: var(--md-pri); }
 .header-tool-btn.danger { color: var(--md-error); }
 .header-tool-btn.danger:hover { background: rgba(239,83,80,0.15); color: var(--md-error); }
+.header-tool-btn.disabled, .header-tool-btn:disabled { opacity: 0.35; cursor: default; pointer-events: none; }
 
 .header-divider {
   width: 1px;

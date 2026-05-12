@@ -115,6 +115,33 @@ function silentEntryUpdate(entryIdx, field, value) {
   debouncedSave();
 }
 
+// ── Undo stack ───────────────────────────────────────────────────────────────
+// Snapshots pages[] before every structural entry change (add, delete, reorder,
+// move). Text-field edits (silentEntryUpdate) are NOT pushed — undo is for
+// accidental structural changes, not keystroke-by-keystroke typing.
+const UNDO_LIMIT = 50;
+const _undoStack = [];   // array of { pages, activePageIdx } snapshots
+
+function pushUndo() {
+  _undoStack.push({
+    pages:         JSON.parse(JSON.stringify(state.pages)),
+    activePageIdx: state.activePageIdx,
+  });
+  if (_undoStack.length > UNDO_LIMIT) _undoStack.shift();
+}
+
+function undo() {
+  if (!_undoStack.length) return;
+  const snap = _undoStack.pop();
+  // Restore without pushing another undo entry
+  state.pages         = snap.pages;
+  state.activePageIdx = snap.activePageIdx;
+  persistState();
+  render();
+}
+
+function canUndo() { return _undoStack.length > 0; }
+
 function structuralPageUpdate(idx, patch) {
   const pages = [...state.pages];
   pages[idx] = { ...pages[idx], ...patch };
@@ -122,6 +149,7 @@ function structuralPageUpdate(idx, patch) {
 }
 
 function setEntries(entries) {
+  pushUndo();
   structuralPageUpdate(state.activePageIdx, { entries });
 }
 
@@ -171,3 +199,14 @@ function clearAssets() {
   assetStore.clear();
   render();
 }
+
+// ── Global keyboard shortcuts ───────────────────────────────────────────────
+// Registered once at load time. Skipped when focus is inside a text field
+// so normal browser undo still works while typing.
+document.addEventListener('keydown', e => {
+  const inText = e.target.matches('input, textarea, select, [contenteditable]');
+  if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey && !inText) {
+    e.preventDefault();
+    undo();
+  }
+});

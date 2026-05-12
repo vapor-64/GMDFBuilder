@@ -56,6 +56,18 @@ function render() {
 
   ha.appendChild(h("div", { className: "header-divider" }));
 
+  // Undo button
+  const undoGroup = h("div", { className: "header-tool-group" });
+  undoGroup.appendChild(h("button", {
+    className: "header-tool-btn" + (canUndo() ? "" : " disabled"),
+    title:     canUndo() ? `Undo (Ctrl+Z) — ${_undoStack.length} step${_undoStack.length !== 1 ? "s" : ""} available` : "Nothing to undo",
+    disabled:  !canUndo(),
+    onClick:   () => undo(),
+  }, "\u21A9 Undo"));
+  ha.appendChild(undoGroup);
+
+  ha.appendChild(h("div", { className: "header-divider" }));
+
   // Help button — hold to reveal overlay
   const helpBtn = h("button", {
     className:   "help-btn" + (isHelpSeen(HELP_SEEN_HEADER) ? "" : " help-btn-unseen"),
