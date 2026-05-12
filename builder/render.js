@@ -1,3 +1,6 @@
+let _suppressNextScrollRestore = false;
+let _dragStartScrollY = null;   // captured at dragstart, restored at dragend
+
 function render() {
   gifAnimManager.clear();
 
@@ -288,8 +291,13 @@ function render() {
     ENTRY_TYPES.forEach(t => {
       const item = h("div", { className: "palette-item", draggable: "true" });
       item.style.color = t.color;
-      item.addEventListener("dragstart", () => { state.dragType = t.type; });
-      item.addEventListener("dragend",   () => setState({ dragType: null, dragOverIdx: null }));
+      item.addEventListener("dragstart", () => { _dragStartScrollY = window.scrollY; state.dragType = t.type; });
+      item.addEventListener("dragend",   () => {
+        _suppressNextScrollRestore = true;
+        setState({ dragType: null, dragOverIdx: null });
+        // Clear the captured scroll target after both drag-related rAF chains have fired
+        requestAnimationFrame(() => requestAnimationFrame(() => requestAnimationFrame(() => { _dragStartScrollY = null; })));
+      });
       item.addEventListener("click",     () => setEntries([...page.entries, defaultEntry(t.type)]));
       item.appendChild(h("span", { className: "palette-icon", style: { background: t.color } }, t.icon));
       item.appendChild(document.createTextNode(t.label));
@@ -424,6 +432,7 @@ function render() {
       dropIndicator.style.display = "none";
       if (state.dragType) {
         // Palette drop: insert a brand-new entry
+        _suppressNextScrollRestore = true;
         const entries = [...page.entries];
         entries.splice(state.dragOverIdx ?? entries.length, 0, defaultEntry(state.dragType));
         state.dragType    = null;
@@ -696,9 +705,17 @@ function render() {
       // also reinforces the landing spot when scrolling did happen.
       flashAnchorTarget(target);
     }));
-  } else if (!state.dragType) {
+  } else if (!state.dragType && !_suppressNextScrollRestore) {
     requestAnimationFrame(() => requestAnimationFrame(() => window.scrollTo({ top: scrollY, behavior: "instant" })));
+  } else if (_suppressNextScrollRestore && _dragStartScrollY !== null) {
+    // End-of-drag render: actively restore to the pre-drag scroll position.
+    // Do NOT clear _dragStartScrollY here — a subsequent drag-related render
+    // (e.g. dragend firing after drop) needs the same target. It's cleared in
+    // the palette/card dragend handler once the drag is fully over.
+    const targetY = _dragStartScrollY;
+    requestAnimationFrame(() => requestAnimationFrame(() => window.scrollTo({ top: targetY, behavior: "instant" })));
   }
+  _suppressNextScrollRestore = false;
 }
 
 // Walk up the ancestor chain and return the first element whose computed

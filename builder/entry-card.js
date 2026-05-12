@@ -78,6 +78,7 @@ function attachDragZone(containerEl, getArray, commitArray) {
     next.splice(ins, 0, moved);
     overIdx = null;
     clearDragSession();
+    _suppressNextScrollRestore = true;
     commitArray(next);                       // single commit → single render
   });
 }
@@ -100,6 +101,7 @@ function makeDragHandle(card, entry, srcIdx, liveArrRef, isTopLevel) {
 
   card.addEventListener('dragstart', e => {
     if (!card.getAttribute('draggable')) return;
+    _dragStartScrollY = window.scrollY;   // capture pre-drag position for restoration
     e.dataTransfer.effectAllowed = 'move';
     const ghost = new Image();
     ghost.src = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
@@ -138,7 +140,10 @@ function makeDragHandle(card, entry, srcIdx, liveArrRef, isTopLevel) {
     card.removeAttribute('draggable');
     card.classList.remove('entry-card-dragging');
     if (isTopLevel) { state.dragSrcIdx = null; state.dragOverIdx = null; }
+    _suppressNextScrollRestore = true;
     clearDragSession();
+    // Clear the captured scroll target after both drag-related rAF chains have fired
+    requestAnimationFrame(() => requestAnimationFrame(() => requestAnimationFrame(() => { _dragStartScrollY = null; })));
   });
 
   return handle;
