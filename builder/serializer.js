@@ -1,4 +1,4 @@
-function serializeEntry(e) {
+﻿function serializeEntry(e) {
   const r = { type: e.type };
   if (e.text  !== undefined) r.text  = e.text;
   if (e.label !== undefined) r.label = e.label;
@@ -21,8 +21,12 @@ function serializeEntry(e) {
   if (e.type === "row") {
     r.left  = (e.left  || []).map(serializeEntry);
     r.right = (e.right || []).map(serializeEntry);
-    if (e.leftFraction !== undefined && Math.abs(e.leftFraction - 0.5) > 0.001)
-      r.leftFraction = e.leftFraction;
+    if (e.leftFraction !== undefined && Math.abs(e.leftFraction - 0.5) > 0.001) {
+      // Clamp to [0.05, 0.95] before writing — mirrors RowEntry's
+      // Math.Clamp(leftFraction, 0.05, 0.95) so the JSON value is always
+      // within the range the mod will accept without silent adjustment.
+      r.leftFraction = Math.min(0.95, Math.max(0.05, e.leftFraction));
+    }
   }
   if (e.type === "indentBlock") {
     r.entries = (e.entries || []).map(serializeEntry);

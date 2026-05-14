@@ -107,11 +107,13 @@ function silentPageUpdate(idx, patch) {
 }
 
 function silentEntryUpdate(entryIdx, field, value) {
-  const pages = state.pages.map((p, pi) => {
-    if (pi !== state.activePageIdx) return p;
-    return { ...p, entries: p.entries.map((e, i) => i === entryIdx ? { ...e, [field]: value } : e) };
-  });
-  state.pages = pages;
+  // Mutate the existing entry object in place. This is critical: drop handlers
+  // and other closures hold references to the live entries array and the live
+  // entry objects — if we replaced them via .map(), those closures would point
+  // at stale data and could overwrite fresh keystrokes when they commit.
+  const page = state.pages[state.activePageIdx];
+  if (!page || !page.entries[entryIdx]) return;
+  page.entries[entryIdx][field] = value;
   debouncedSave();
 }
 
@@ -123,8 +125,13 @@ const UNDO_LIMIT = 50;
 const _undoStack = [];   // array of { pages, activePageIdx } snapshots
 
 function pushUndo() {
+  // Store a reference to the CURRENT pages array. Structural updates always
+  // create a new top-level array and new page objects via spread — individual
+  // entry objects are shared between snapshots, but they are never mutated
+  // by structural operations (only by silentEntryUpdate, which we deliberately
+  // do not undo). Deep cloning would be O(n) on every drag/delete; this is O(1).
   _undoStack.push({
-    pages:         JSON.parse(JSON.stringify(state.pages)),
+    pages:         state.pages,
     activePageIdx: state.activePageIdx,
   });
   if (_undoStack.length > UNDO_LIMIT) _undoStack.shift();

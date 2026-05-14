@@ -1,4 +1,4 @@
-const gifAnimManager = (() => {
+﻿const gifAnimManager = (() => {
   const intervals = new Set();
   return {
     add(id)    { intervals.add(id); },
@@ -454,7 +454,9 @@ function renderPreviewEntry(entry) {
     }
 
     case "row": {
-      const frac = entry.leftFraction ?? 0.5;
+      // Clamp to [0.05, 0.95] — mirrors RowEntry's Math.Clamp(leftFraction, 0.05, 0.95)
+      // so the preview can never show a zero-width column regardless of the stored value.
+      const frac = Math.min(0.95, Math.max(0.05, entry.leftFraction ?? 0.5));
       const wrap = h("div", { className: "pv-row-wrap" });
       const lc   = h("div", { className: "pv-row-col", style: { flex: String(frac) } });
       const rc   = h("div", { className: "pv-row-col", style: { flex: String(1 - frac) } });

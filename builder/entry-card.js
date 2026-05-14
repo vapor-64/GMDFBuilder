@@ -1,4 +1,4 @@
-function deepCloneEntry(entry) {
+﻿function deepCloneEntry(entry) {
   const clone = { ...entry, _id: uid() };
   if (clone.type === 'sectionTitle' || clone.type === 'paragraph') clone.anchor = slugifyAnchor();
   if (clone.left)    clone.left    = clone.left.map(deepCloneEntry);
@@ -398,7 +398,7 @@ function renderEntryCard(entry, idx, total, callbacks, liveArrRef) {
 
     spoilerItems.forEach((sub, si) => {
       const subCb = {
-        onSilentUpd: (field, value) => { entry.entries[si] = { ...entry.entries[si], [field]: value }; },
+        onSilentUpd: (field, value) => { if (entry.entries[si]) entry.entries[si][field] = value; },
         onStructUpd: (field, value) => {
           const u = [...entry.entries]; u[si] = { ...u[si], [field]: value }; structUpd('entries', u);
         },
@@ -569,7 +569,9 @@ function renderEntryCard(entry, idx, total, callbacks, liveArrRef) {
   // ── Row (two columns) ─────────────────────────────────────────────────────
   if (entry.type === 'row') {
     const fracRow = h('div', { className: 'field-row', style: { marginBottom: '8px', alignItems: 'center', gap: '8px' } });
-    const fracInp = h('input', { type: 'range', min: '20', max: '80', step: '5', style: { flex: '1' } });
+    // Slider bounds match the mod's Math.Clamp(leftFraction, 0.05, 0.95):
+    // min=5 / max=95 ensures neither column can drop below 5 % of the row width.
+    const fracInp = h('input', { type: 'range', min: '5', max: '95', step: '5', style: { flex: '1' } });
     fracInp.value = Math.round((entry.leftFraction ?? 0.5) * 100);
     const fracLbl = h('span', { style: { fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--text-dim)' } }, fracInp.value + '%');
     fracInp.addEventListener('input', e => { const pct = parseInt(e.target.value); fracLbl.textContent = pct + '%'; silentUpd('leftFraction', pct / 100); });
@@ -586,7 +588,7 @@ function renderEntryCard(entry, idx, total, callbacks, liveArrRef) {
 
       colItems.forEach((sub, si) => {
         const subCb = {
-          onSilentUpd: (field, value) => { entry[side][si] = { ...entry[side][si], [field]: value }; },
+          onSilentUpd: (field, value) => { if (entry[side][si]) entry[side][si][field] = value; },
           onStructUpd: (field, value) => { const u = [...entry[side]]; u[si] = { ...u[si], [field]: value }; structUpd(side, u); },
           onDelete: () => { purgeEntryFromSets(sub); const u = [...entry[side]]; u.splice(si, 1); structUpd(side, u); },
           onMoveUp:   si > 0 ? () => { const u = [...entry[side]]; [u[si-1],u[si]]=[u[si],u[si-1]]; structUpd(side, u); } : null,
@@ -646,7 +648,7 @@ function renderEntryCard(entry, idx, total, callbacks, liveArrRef) {
 
     childItems.forEach((sub, si) => {
       const subCb = {
-        onSilentUpd: (field, value) => { entry.entries[si] = { ...entry.entries[si], [field]: value }; },
+        onSilentUpd: (field, value) => { if (entry.entries[si]) entry.entries[si][field] = value; },
         onStructUpd: (field, value) => { const u = [...entry.entries]; u[si] = { ...u[si], [field]: value }; structUpd('entries', u); },
         onDelete: () => { purgeEntryFromSets(sub); const u = [...entry.entries]; u.splice(si, 1); structUpd('entries', u); },
         onMoveUp:   si > 0 ? () => { const u = [...entry.entries]; [u[si-1],u[si]]=[u[si],u[si-1]]; structUpd('entries', u); } : null,

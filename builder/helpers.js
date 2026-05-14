@@ -215,7 +215,10 @@ function attachSpritePicker(inputEl, wrap) {
             return;
           }
           const grid = h("div", { className: "sp-grid" });
-          names.forEach(name => {
+          // Sort emote names case-insensitively, matching the mod's OrdinalIgnoreCase
+          // dictionary ordering so the picker feels consistent with in-game behaviour.
+          const sortedNames = [...names].sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+          sortedNames.forEach(name => {
             const cell = h("div", { className: "sp-cell", title: `{${name}}` });
             const img  = document.createElement("img");
             img.src              = emotes[name];
@@ -228,6 +231,9 @@ function attachSpritePicker(inputEl, wrap) {
             cell.title = `{${name}}`;
             cell.addEventListener("mousedown", e => {
               e.preventDefault();
+              // Always insert the token using the canonical key from GMDF_EMOTES
+              // (the exact casing stored there), so the emote resolves at any
+              // casing — but authors should see a canonical example in their JSON.
               const tag   = `{${name}}`;
               const start = inputEl.selectionStart ?? inputEl.value.length;
               const end   = inputEl.selectionEnd   ?? inputEl.value.length;

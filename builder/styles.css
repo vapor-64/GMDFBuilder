@@ -1227,7 +1227,8 @@ input, textarea, select, button { font-family: inherit; }
 .pv-float-img img{display:block;image-rendering:pixelated;max-width:100%}
 .pv-float-list{flex:1;min-width:0}
 .pv-row-wrap{display:flex;gap:16px;margin-bottom:8px;align-items:flex-start}
-.pv-row-col{min-width:0;overflow:hidden}
+/* min-width:1px matches the mod's Math.Max(1, leftW) / Math.Max(1, rightW) floor */
+.pv-row-col{min-width:1px;overflow:hidden}
 .pv-spacer{display:block}
 
 .internal-link-hint {
